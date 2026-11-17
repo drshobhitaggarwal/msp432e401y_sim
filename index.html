@@ -8156,7 +8156,7 @@ var GB = {}, TB = {}, UB = {}, PK = {}, INTN = {}, CFG = {}, PINMAPLOCAL = {};
 M.PINFN.forEach(function (d) { PINMAPLOCAL[d[0] + d[1] + ':' + d[2]] = d[4]; });
 PORTS.forEach(function (L, i) {
   var base = 0x40058000 + i * 0x1000;
-  K['GPIO_PORT' + L + '_BASE'] = base; GB[base] = L;
+  K['GPIO_PORT' + L + '_BASE'] = base; K['GPIO_PORT' + L + '_AHB_BASE'] = base; GB[base] = L;   // SimpleLink SDK also has the _AHB_ names
   K['SYSCTL_PERIPH_GPIO' + L] = 0xf0000800 + i; PK[0xf0000800 + i] = 'GPIO' + L;
 });
 for (var i = 0; i < 8; i++) {
