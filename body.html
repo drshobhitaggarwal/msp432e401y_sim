@@ -1,0 +1,157 @@
+<div class="app">
+  <header class="bar">
+    <div class="title"><h1>MSP432E401Y Bench<small>Breadboard, LaunchPad, C in, behavior out</small></h1></div>
+    <button id="palToggle" class="btn small paltoggle" type="button" aria-label="Show the parts list">Parts</button>
+    <div class="ctl">
+      <select id="exSel" aria-label="Example program"></select>
+      <button id="runBtn" class="btn primary" type="button">Build &amp; Run</button>
+      <button id="pauseBtn" class="btn" type="button">Pause</button>
+      <button id="resetBtn" class="btn" type="button">Restart</button>
+      <select id="speed" aria-label="Simulation speed">
+        <option value="1" selected>1x real time</option>
+        <option value="0.1">0.1x slow</option>
+        <option value="0.01">0.01x slower</option>
+        <option value="10">10x</option>
+        <option value="100">100x</option>
+      </select>
+      <span id="status" class="chip idle">idle</span>
+    </div>
+    <div class="winbtns" role="group" aria-label="Windows">
+      <button class="btn small" type="button" data-win="program">Program</button>
+      <button class="btn small" type="button" data-win="board">LaunchPad</button>
+      <button class="btn small" type="button" data-win="term">Terminal</button>
+      <button class="btn small" type="button" data-win="scope">Analyzer</button>
+      <button class="btn small" type="button" data-win="bus">Bus decoder</button>
+      <button class="btn small" type="button" data-win="stat">Status</button>
+      <button class="btn small" type="button" data-win="help">Help</button>
+    </div>
+  </header>
+  <div class="main">
+    <aside class="pal" id="palette" aria-label="Parts">
+      <div class="pal-head"><b>Parts</b><span class="note">Drag a part onto the breadboard, then wire it. Drag from a hole or a header pin to another hole to add a jumper. Double-click a part for its details, or the LaunchPad for the program.</span></div>
+      <div class="pal-list" id="palList"></div>
+      <div class="pal-foot"><button id="benchClear" class="btn small" type="button">Clear bench</button></div>
+    </aside>
+    <div class="desk" id="desk">
+      <svg id="bench" tabindex="0" role="application" aria-label="Bench: a LaunchPad above a breadboard. Drag parts onto the breadboard and join them with jumper wires."></svg>
+      <div class="zoomctl"><button class="btn" id="zoomOut" type="button" aria-label="Zoom out">&minus;</button><button class="btn" id="zoomIn" type="button" aria-label="Zoom in">+</button><button class="btn" id="zoomFit" type="button" aria-label="Fit the bench to the screen">Fit</button></div>
+      <details id="benchMsgs" class="empty" open><summary id="benchMsgsSum">Bench check</summary><ul id="benchMsgsList"></ul></details>
+      <div id="benchSel"></div>
+      <div id="benchToast" role="status"></div>
+    </div>
+  </div>
+</div>
+
+<div id="stash" hidden>
+  <div id="pgmBody" class="stackcol">
+      <section class="stackcol">
+        <header><h2>main.c</h2><span class="note" id="exNote"></span></header>
+        <div class="dbgbar" role="toolbar" aria-label="Debugger controls">
+          <label class="chk"><input type="checkbox" id="dbgOn"> Debug build</label>
+          <button class="btn small" id="dbgGo" type="button" disabled title="Continue (F8)">Continue</button>
+          <button class="btn small" id="dbgOver" type="button" disabled title="Step over (F10)">Step over</button>
+          <button class="btn small" id="dbgInto" type="button" disabled title="Step into (F11)">Step into</button>
+          <button class="btn small" id="dbgOut" type="button" disabled title="Step out (Shift+F11)">Step out</button>
+          <span class="note" id="dbgHint"></span>
+        </div>
+        <div class="editor"><div id="curline" aria-hidden="true"></div><div id="gutter" title="Click a line number to set a breakpoint"></div><textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" aria-label="C source code"></textarea></div>
+        <div id="err" role="alert"></div>
+      </section>
+      <details id="dbgPanel" open>
+        <summary><h2 style="display:inline">Debugger and registers</h2> <span class="note" id="dbgWhere"></span></summary>
+        <div class="dbggrid">
+          <div class="dbgcol">
+            <h3>Call stack</h3><ol id="dbgStack" class="stack"></ol>
+            <h3>Breakpoints</h3><ul id="dbgBps" class="bplist"></ul>
+          </div>
+          <div class="dbgcol">
+            <h3>Variables <label class="chk tiny"><input type="checkbox" id="dbgHex" checked> hex</label></h3>
+            <table class="kv" id="dbgVars"></table>
+            <h3>Watch</h3>
+            <form id="dbgWatchForm" class="termrow"><input id="dbgWatchIn" type="text" placeholder="expression, e.g. count or TIMER0_RIS_R" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Watch expression"><button class="btn small" type="submit">Add</button></form>
+            <table class="kv" id="dbgWatch"></table>
+          </div>
+        </div>
+        <h3>Peripheral registers <select id="regSel" aria-label="Register block"></select></h3>
+        <p class="note" id="dbgRegMsg" role="status">Values update live. Click a value to write a register.</p>
+        <div class="regwrap"><table class="regs"><tbody id="dbgRegs"></tbody></table></div>
+      </details>
+  </div>
+  <div id="boardBody" class="stackcol">
+      <section class="stackcol">
+        <header><h2>LaunchPad</h2><span class="note" id="boardNote">D1 PN1 / D2 PN0 / D3 PF4 / D4 PF0</span></header>
+        <div class="boardbox">
+          <svg id="board" viewBox="0 0 400 250" role="img" aria-label="MSP-EXP432E401Y LaunchPad with four user LEDs and two user switches">
+            <defs><filter id="glow" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur stdDeviation="5"/></filter></defs>
+            <rect class="pcb" x="6" y="6" width="388" height="238" rx="12"/>
+            <g id="hdrL"></g><g id="hdrR"></g>
+            <rect class="metal" x="150" y="6" width="100" height="30" rx="3"/>
+            <text class="silk" x="200" y="25" text-anchor="middle" style="fill:#2A3036">USB</text>
+            <rect class="metal" x="300" y="50" width="76" height="56" rx="3"/>
+            <text class="silk" x="338" y="82" text-anchor="middle" style="fill:#2A3036">ETH</text>
+            <rect class="ic" x="150" y="84" width="100" height="76" rx="4"/>
+            <circle cx="161" cy="95" r="2.5" fill="#5B646E"/>
+            <text class="icx" x="200" y="120" text-anchor="middle">MSP432E401Y</text>
+            <text class="icx" x="200" y="136" text-anchor="middle" style="font-size:8px;opacity:.7">Cortex-M4F 120 MHz</text>
+            <text class="silk" x="30" y="30">MSP-EXP432E401Y</text>
+            <circle id="txLed" cx="36" cy="44" r="3.5" class="led-off"/><circle id="txOn" cx="36" cy="44" r="3" class="led-on" opacity="0"/>
+            <text class="silk s" x="46" y="47">COM</text>
+            <g id="leds"></g>
+            <g id="sws"></g>
+          </svg>
+        </div>
+        <div class="holds">
+          <button class="hold" id="sw1" type="button" aria-label="Hold to press user switch 1">SW1<small>PJ0 hold to press</small></button>
+          <button class="hold" id="sw2" type="button" aria-label="Hold to press user switch 2">SW2<small>PJ1 hold to press</small></button>
+        </div>
+        <h2>On-board items</h2>
+        <div id="obChecks" class="obchecks"></div>
+        <h2>Analog inputs</h2>
+        <div class="analog" id="analog"></div>
+        <h2>Pins in use <span class="note" style="text-transform:none;letter-spacing:0;font-weight:400">(tap an input pin to drive it: floating, high, low)</span></h2>
+        <div class="pins" id="pins"><span class="note">No pins configured yet.</span></div>
+      </section>
+  </div>
+  <div id="termBody" class="stackcol"><section class="stackcol">
+        <header><h2>UART0 virtual COM port</h2><span class="note"><span id="baud">115200</span> baud, 8N1</span></header>
+        <div id="term" class="screen" role="log" aria-live="off" tabindex="0"></div>
+        <form class="termrow" id="termForm">
+          <input id="termIn" type="text" placeholder="Type to send to the board (Enter sends CR)" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal input">
+          <button class="btn" type="submit">Send</button>
+          <button class="btn" type="button" id="termClear">Clear</button>
+        </form>
+      </section></div>
+  <div id="scopeBody" class="stackcol"><section class="stackcol">
+        <header><h2>Logic analyzer</h2>
+          <select id="win" aria-label="Time window"><option value="0.001">1 ms</option><option value="0.01">10 ms</option><option value="0.1">100 ms</option><option value="1">1 s</option><option value="5" selected>5 s</option><option value="20">20 s</option></select>
+        </header>
+        <canvas id="scope" aria-label="Logic analyzer trace of GPIO pins"></canvas>
+      </section></div>
+  <div id="busBody" class="stackcol"><section id="busPanel">
+        <header><h2>Bus decoder</h2>
+          <label class="chk"><input type="checkbox" id="busPull"> 4.7 k pull-ups on SDA and SCL</label>
+          <button class="btn small" id="busClear" type="button">Clear</button>
+        </header>
+        <div id="busLog" class="screen buslog" role="log" aria-live="off" tabindex="0"></div>
+        <p class="note">I2C: S start, Sr repeated start, P stop. Each byte shows ACK or NACK. SPI: one line per chip-select frame, MOSI then MISO bytes in hex. The waveforms appear in the logic analyzer above (PB2 SCL, PB3 SDA, PA2 CLK, PA4 MOSI, PA5 MISO).</p>
+      </section></div>
+  <div id="statBody" class="stackcol"><section class="stackcol">
+        <header><h2>Status</h2></header>
+        <dl class="stat" id="stat"></dl>
+      </section></div>
+  <div id="helpBody" class="stackcol"><div class="help">
+        
+        <ul>
+          <li>C is translated to JavaScript and run on a virtual clock. <code>SysCtlDelay</code>, timers, UART baud rate and ADC conversions take the time they would on the board. Plain statements are free, so tight loops are only approximately timed.</li>
+          <li>DriverLib calls for system control, GPIO (with interrupts), Timer0-7, SysTick, UART0, I2C0, SSI0, ADC0/1 (processor trigger), PWM0 and NVIC.</li>
+          <li>Faults are enforced: using a peripheral before <code>SysCtlPeripheralEnable</code> is a hard fault, a missing <code>TimerIntClear</code> is an interrupt storm, and the user switches read as pressed unless you enable the weak pull-ups.</li>
+          <li>The bench: drag parts from the list onto the breadboard, then join them with jumper wires from a hole in the part's column to a LaunchPad header pin. The two halves of the board are separate, each column of five holes is joined, and the power rails run the whole length. Every part needs its power wires (VCC and GND, or the COM pin) or it does nothing, and the bench check says what is missing. Wiring 3V3 to GND is a short circuit and stops the program. Parts available: 4x4 keypad, relay, LED bar, RGB LED, 7-segment display, buzzer, DC motor, servo, stepper, DIP switches, push buttons, TMP102, 24C02, LCD, OLED, 25LC256 and 74HC595. Parts read the pin signals, so GPIO and PWM both work. Choosing an example puts its parts on the bench, wired the way its code expects. Double-click a part for its details, double-click the LaunchPad for the editor and debugger.</li>
+          <li>Register-level code works too: <code>GPIO_PORTN_AHB-&gt;DATA</code>, <code>SYSCTL-&gt;RCGCGPIO</code>, <code>TIMER0_CTL_R</code>, <code>HWREG()</code> and raw addresses such as <code>*(volatile uint32_t *)0x400643FC</code>, with NVIC, SysTick, and the PLL clock registers. Touching a peripheral with its clock off is a bus fault.</li>
+          <li>I2C0 (PB2 SCL, PB3 SDA, master mode, DriverLib or registers) and SSI0 (PA2 CLK, PA3 FSS, PA4 MOSI, PA5 MISO, SPI master, modes 0-3) run bit-accurately on a virtual wire at the programmed clock rate. Virtual devices on the bench answer them: temperature sensor, EEPROMs, LCD and OLED, 74HC595. The bus decoder lists every transaction (ACK/NACK, chip-select frames) and the analyzer draws SCL, SDA, CLK, MOSI and MISO. I2C1-3, SSI1-3 and slave modes are not simulated.</li>
+          <li>Not supported: pointer arithmetic such as <code>*s++</code>, structs, function pointers, DMA, Ethernet, USB, CAN. <code>UARTprintf</code> has no <code>%f</code>, like the real library. <code>printf</code> does.</li>
+          <li>Debugger: tick Debug build, then click a line number (or press F9) to set a breakpoint. Step over, into and out (F10, F11, Shift+F11) work across functions and interrupt handlers; the call stack marks handlers that interrupted <code>main</code>. Variables, watch expressions and every peripheral register can be inspected while stopped, and registers can be edited. Debug builds run somewhat slower.</li>
+                    <li>Interrupt handlers are found by the vector-table name (<code>GPIOJ_Handler</code>, <code>Timer0A_Handler</code>, <code>SysTick_Handler</code>, <code>UART0_Handler</code>, <code>I2C0_Handler</code>, <code>SSI0_Handler</code>, <code>ADC0SS3_Handler</code>) or registered with <code>IntRegister</code>.</li>
+        </ul>
+      </div></div>
+  <div id="partCards"></div>
+</div>

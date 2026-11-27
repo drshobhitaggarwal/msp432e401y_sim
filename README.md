@@ -1,16 +1,16 @@
 # MSP432E401Y Simulator
 
-A browser-based simulator for the MSP-EXP432E401Y LaunchPad. You write C with the usual TivaWare/DriverLib calls or direct register access, press **Build & Run**, and watch the board, the peripherals and a bench of add-on parts react. There is nothing to install and no toolchain: the C is translated to JavaScript and run on a virtual clock.
+A browser-based simulator for the MSP-EXP432E401Y LaunchPad. You build a circuit on a breadboard, write C with the usual TivaWare/DriverLib calls or direct register access, press **Build & Run**, and watch the board and the parts you wired react. There is nothing to install and no toolchain: the C is translated to JavaScript and run on a virtual clock.
 
 It was built for teaching embedded systems (intro engineering, embedded-systems lab, senior design). The simulator checks for the mistakes students actually make and explains them in plain English, for example using a peripheral before enabling its clock, forgetting to clear an interrupt, or addressing an I2C device that is not there.
 
-![Simulator showing the LCD example](docs/screenshot-main.png)
+![Bench with the LaunchPad, a breadboard, a keypad and a relay module wired for the door-lock example](docs/screenshot-main.png)
 
 ## Contents
 
 - [Quick start](#quick-start)
 - [What is simulated](#what-is-simulated)
-- [Components bench](#components-bench)
+- [The bench](#the-bench)
 - [I2C and SPI](#i2c-and-spi)
 - [Debugger](#debugger)
 - [Register-level programming](#register-level-programming)
@@ -24,12 +24,12 @@ It was built for teaching embedded systems (intro engineering, embedded-systems 
 
 Open `index.html` in a current desktop or mobile browser. It is one self-contained page: the [acorn](https://github.com/acornjs/acorn) parser (MIT licensed) is inlined, so it works offline. The only optional external file is the Google font, and the page falls back to system fonts without it.
 
-1. Pick an example from the drop-down, or write your own code in the editor.
-2. Press **Build & Run**. Compile errors show the C line number.
-3. Use the on-screen switches, analog sliders and parts. Read the UART output in the terminal.
-4. Open the logic analyzer to see pin waveforms and the bus decoder to see I2C and SPI transactions.
+1. Pick an example from the drop-down. It puts the parts it needs on the breadboard and wires them. Or start from an empty bench: drag parts from the left pane onto the breadboard and wire them yourself.
+2. Double-click the LaunchPad to open the **Program** window (editor, debugger and register viewer), or write your own code there.
+3. Press **Build & Run**. Compile errors show the C line number.
+4. Press the keys, switches and buttons on the parts. Read the UART output in **Terminal**. Open **Analyzer** for pin waveforms and **Bus decoder** for I2C and SPI transactions.
 
-Your code, wiring and settings are saved in the browser's local storage.
+Your code, bench and settings are saved in the browser's local storage. A saved wiring from the earlier, tick-box version of the simulator is carried over onto the bench.
 
 To host it with GitHub Pages, commit `index.html` to the repository root, then go to Settings, Pages, choose "Deploy from a branch", pick the branch and the `/ (root)` folder. The site appears at `https://<user>.github.io/<repo>/` after a minute or two. Any static host works the same way.
 
@@ -52,9 +52,20 @@ To host it with GitHub Pages, commit `index.html` to the repository root, then g
 
 Delays, timer periods, UART baud rate, ADC conversions and bus transfers take the time they would on the board. Ordinary C statements cost nothing, so tight loops are only approximately timed. The speed selector runs the virtual clock slower or faster than real time.
 
-## Components bench
+## The bench
 
-Tick the parts you want, then choose which pin each one connects to. A part that is unticked is disconnected. Parts read the real pin signals, so GPIO, PWM and timer-driven outputs all work. Conflicts are flagged: two parts on one pin, a part on a pin the LaunchPad already uses, or two outputs sharing one PWM generator and therefore one period.
+The main screen is a large breadboard with the LaunchPad above it. The left pane lists every part.
+
+- **Place a part.** Drag it onto the breadboard, or click it in the list and then click a spot on the board. Parts that fit the upper half plug in above the board, the others below.
+- **Wire it.** Drag from any breadboard hole, or from a header pin on the LaunchPad, to another hole to add a jumper. Or click one end and then the other. Drag a wire end to move it, select a wire and press Delete to remove it.
+- **Rows are real.** The five holes of a column are joined, the two halves of the board are not, and each power rail runs the whole length. A jumper to the wrong column does nothing.
+- **Power is required.** Every part needs VCC and GND wired. A part that is not powered does nothing, and the bench check box lists what is missing. Parts that need 5 V (relay, motors, servo, LCD) do not work from 3.3 V. Joining 3.3 V, 5 V and ground together is a short circuit and stops the run.
+- **Common pins.** For parts with a COM pin (LED bar, RGB LED, 7-segment, buttons, DIP switches) the COM wire decides common anode/cathode or pull-up/pull-down. Connect it to GND or VCC.
+- **Open the parts.** Double-click a part for its settings and a wiring table that shows which pin each wire reaches. Double-click the LaunchPad for the program editor and debugger.
+- **Windows.** Program, LaunchPad (analog sliders, on-board jumpers, pin list), Terminal, Analyzer, Bus decoder, Status and Help are floating windows. Drag by the title, resize from the corner, double-click the title to maximize.
+- **On a phone** the windows fill the screen and the parts list is a drawer. Pinch to zoom the bench.
+
+Parts read the real pin signals, so GPIO, PWM and timer-driven outputs all work. Conflicts are flagged: two parts on one pin, a part on a pin the LaunchPad already uses, I2C or SPI devices on the wrong pins, or two outputs sharing one PWM generator and therefore one period. Only one of each part can be on the bench.
 
 | Part | Notes |
 |---|---|
@@ -72,7 +83,7 @@ Tick the parts you want, then choose which pin each one connects to. A part that
 
 I2C0 uses PB2 (SCL) and PB3 (SDA). SSI0 uses PA2 (CLK), PA3 (FSS), PA4 (MOSI) and PA5 (MISO). The simulator generates the bus waveforms bit by bit at the programmed clock rate, so you can see them in the logic analyzer, and it decodes every transaction in the **Bus decoder** panel (start, repeated start, stop, ACK/NACK, chip-select frames with MOSI and MISO bytes).
 
-Virtual devices you can add to the bench:
+Virtual devices you can place on the bench (wire their SCL/SDA or CLK/MOSI/MISO/CS pins to the matching LaunchPad pins):
 
 | Device | Bus | What it models |
 |---|---|---|
@@ -89,7 +100,7 @@ Messages the bus code produces include: SDA/SCL pins not set up for I2C, SDA not
 
 ## Debugger
 
-Tick **Debug build**, then click a line number or press F9 to set a breakpoint.
+Open the Program window, tick **Debug build**, then click a line number or press F9 to set a breakpoint.
 
 - Step over, step into, step out (F10, F11, Shift+F11), continue, pause
 - Conditional breakpoints
@@ -118,7 +129,7 @@ Registers have the real offsets, reset values, write-one-to-clear behaviour and 
 
 ## Examples
 
-30 programs, in the drop-down. Choosing one switches on the parts it needs.
+30 programs, in the drop-down. Choosing one puts the parts it needs on the bench, wired the way its code expects, and removes the parts of the previous example. Parts and wires you added yourself stay.
 
 | Group | Examples |
 |---|---|
@@ -145,17 +156,20 @@ core.js                  simulator core: clock, scheduler, GPIO, timers, UART, A
 regs.js                  memory-mapped register layer and register name tables
 buses.js                 I2C0, SSI0, bus waveforms, protocol log, virtual I2C and SPI devices
 api.js                   DriverLib/CMSIS functions and constants
-parts.js, parts2.js      add-on parts model (keypad, relay, motors, ...) and wiring
+parts.js, parts2.js      add-on parts model (keypad, relay, motors, ...)
+bench.js                 breadboard model: holes, rails, jumpers, part definitions, power and short-circuit checks
 compiler.js              C subset to JavaScript
 examples.js              the 30 example programs
-ui.js                    editor, terminal, board drawing, logic analyzer, status
-ui_parts.js              component cards, wiring pickers, bus decoder panel
+ui_win.js                floating windows
+ui_parts.js              part settings cards, validation, bus decoder panel
+ui_bench.js              breadboard drawing, drag and drop, wiring, part faces
 ui_dbg.js                debugger panels and register viewer
+ui.js                    editor, terminal, logic analyzer, status, window setup
 build.sh                 concatenates the files above into app.html
 index.html               built, self-contained page for GitHub Pages or any static host
 app.html                 same program as an HTML fragment (no doctype), used for publishing inside Claude artifacts; not needed on GitHub
 test.js                  headless test harness
-tests*.js, smoke2.js     test suites
+tests*.js, e2e_bench*.js, smoke_bench.js   test suites
 ```
 
 ## Building and testing
@@ -163,22 +177,25 @@ tests*.js, smoke2.js     test suites
 Requires Node.js 18 or newer.
 
 ```sh
-npm install        # acorn and jsdom
+npm install        # acorn and jsdom (Playwright is optional, for the browser tests)
 bash build.sh      # writes index.html (acorn inlined) and app.html
 ```
 
-Test suites run headless in Node:
+Run all headless suites with `npm test`. Individually:
 
 ```sh
 node tests.js          # examples and core behaviour
-node tests2.js         # parts and wiring
+node tests2.js         # parts model
+node tests_bench.js    # breadboard rows, rails, power, shorts, auto-wiring of all examples
 node tests_regs.js     # register layer, clocks, interrupts
 node tests_dbg.js      # breakpoints, stepping, watch
 node tests_bus.js      # I2C, SPI, devices, bus examples
-node smoke2.js         # UI smoke test in jsdom (run build.sh first; uses app.html)
+node smoke_bench.js    # UI smoke test in jsdom (run build.sh first; uses app.html)
+node e2e_bench.js      # drag and drop, wiring, windows in real Chromium (needs Playwright)
+node e2e_bench2.js     # click placement, moving parts and wires, key presses, reload, migration
 ```
 
-Each prints `ALL ... PASSED` on success. `shot*.js` are Playwright scripts for taking screenshots and are not part of the test suite.
+Each prints `ALL ... PASSED` on success. `shot_readme.js` regenerates the README screenshots with Playwright and is not part of the test suite.
 
 ## Limitations
 
@@ -188,3 +205,4 @@ Each prints `ALL ... PASSED` on success. `shot*.js` are Playwright scripts for t
 - **ADC** supports processor triggers only. **Timers** do not model capture or RTC modes.
 - **Interrupts** are prioritised but handlers are not preempted or nested.
 - APB GPIO aliases map to the AHB registers.
+- **Bench:** one of each part type, and no potentiometer part yet (analog inputs are sliders in the LaunchPad window). Wires are ideal: no resistance, current or LED burn-out is modeled, only connectivity, supply voltage and shorts.

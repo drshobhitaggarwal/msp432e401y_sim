@@ -1,11 +1,12 @@
 #!/bin/bash
 cd "$(dirname "$0")"
+JS="core.js regs.js buses.js api.js parts.js parts2.js bench.js compiler.js examples.js ui_win.js ui_parts.js ui_bench.js ui_dbg.js ui.js"
 {
   cat head.html
   cat body.html
   echo '<script src="https://cdn.jsdelivr.net/npm/acorn@8.12.1/dist/acorn.js"></script>'
   echo '<script>'
-  cat core.js regs.js buses.js api.js parts.js parts2.js compiler.js examples.js ui_parts.js ui_dbg.js ui.js
+  cat $JS
   echo '</script>'
 } > app.html
 wc -c app.html
@@ -26,7 +27,7 @@ wc -c app.html
     echo '<script src="https://cdn.jsdelivr.net/npm/acorn@8.12.1/dist/acorn.js"></script>'
   fi
   echo '<script>'
-  cat core.js regs.js buses.js api.js parts.js parts2.js compiler.js examples.js ui_parts.js ui_dbg.js ui.js
+  cat $JS
   echo '</script>'
   echo '</body></html>'
 } > index.html

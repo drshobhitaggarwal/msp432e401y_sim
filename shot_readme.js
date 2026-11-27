@@ -1,0 +1,27 @@
+const { chromium } = require('playwright'); const fs = require('fs');
+(async () => {
+  let html = fs.readFileSync(__dirname + '/app.html', 'utf8');
+  html = html.replace(/<script src="https:\/\/cdn.jsdelivr[^>]*><\/script>/, () => '<script>' + fs.readFileSync(__dirname + '/node_modules/acorn/dist/acorn.js', 'utf8') + '</script>').replace(/<link rel="stylesheet"[^>]*>/, '');
+  fs.writeFileSync(__dirname + '/shot.html', html);
+  const b = await chromium.launch(); const errs = [];
+  const p = await b.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+  p.on('pageerror', e => errs.push(String(e)));
+  await p.goto('file://' + __dirname + '/shot.html'); await p.waitForTimeout(700);
+  const sel = id => p.evaluate(i => { const s = document.getElementById('exSel'); s.value = i; s.dispatchEvent(new Event('change')); }, id);
+  await sel('door_lock'); await p.waitForTimeout(300);
+  await p.click('#runBtn'); await p.waitForTimeout(2500);
+  await p.evaluate(() => { const S = BenchUI.sim(); [1,2,3,4].forEach(k => { }); });
+  await p.screenshot({ path: __dirname + '/docs/screenshot-main.png' });
+  await sel('reg_timer_irq'); await p.waitForTimeout(300);
+  await p.evaluate(() => { Win.open('program'); });
+  await p.waitForTimeout(300);
+  await p.evaluate(() => { const d = document.getElementById('dbgOn'); d.checked = true; d.dispatchEvent(new Event('change')); });
+  await p.waitForTimeout(300);
+  await p.evaluate(() => { const g = [...document.querySelectorAll('#gutter .gl')].find((e, i) => /ticks\+\+/.test(document.getElementById('code').value.split('\n')[i])); g.click(); });
+  await p.click('#runBtn').catch(() => {});
+  await p.waitForTimeout(1800);
+  await p.evaluate(() => { const r = document.getElementById('regSel'); if (r) { r.value = 'TIMER0'; r.dispatchEvent(new Event('change')); } });
+  await p.waitForTimeout(400);
+  await p.screenshot({ path: __dirname + '/docs/screenshot-debugger.png' });
+  console.log('errors', errs.join('|') || 'none'); await b.close();
+})();

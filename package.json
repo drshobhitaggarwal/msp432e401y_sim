@@ -1,0 +1,12 @@
+{
+  "name": "msp432e401y-simulator",
+  "version": "2.0.0",
+  "description": "Browser-based breadboard simulator for the MSP-EXP432E401Y LaunchPad. Write C, wire parts on a breadboard, run it.",
+  "scripts": {
+    "build": "bash build.sh",
+    "test": "node tests.js && node tests2.js && node tests_regs.js && node tests_dbg.js && node tests_bus.js && node tests_bench.js && node smoke_bench.js"
+  },
+  "dependencies": { "acorn": "^8.12.1" },
+  "devDependencies": { "jsdom": "^24.1.3" },
+  "optionalDependencies": { "playwright": "^1.47.0" }
+}

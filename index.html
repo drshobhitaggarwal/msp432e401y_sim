@@ -13,6 +13,7 @@
   --pcb: #B3202A; --pcb-edge: #7C1119; --led: #FFB224;
   --ok: #12805C; --warn: #9A5B00; --err: #C0262D;
   --code-bg: #FBFCFD; --gutter: #EEF1F4; --gutter-ink: #7A8591;
+  --bb: #E7E1D3; --bb-edge: #BDB39B; --bb-hole: #4A4F57; --bb-trench: #CFC6B2; --bench-bg: #D9DEE4; --bench-dot: #C3CAD2;
   --scr-bg: #0E1418; --scr-ink: #C9F2D9; --scr-dim: #6F8A7C; --scr-grid: #24323A; --scr-trace: #54E39B; --scr-warn: #FFC857; --scr-err: #FF7A7A;
   --f-ui: "Barlow Semi Condensed", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -24,6 +25,7 @@
     --pcb: #94202A; --pcb-edge: #5D0F16; --led: #FFB224;
     --ok: #3CC594; --warn: #F0B04A; --err: #FF7378;
     --code-bg: #11151A; --gutter: #181D23; --gutter-ink: #6C7782; color-scheme: dark;
+    --bb: #33373D; --bb-edge: #202327; --bb-hole: #A3AAB3; --bb-trench: #25282C; --bench-bg: #0F1317; --bench-dot: #1B2026;
   }
 }
 :root[data-theme="dark"] {
@@ -32,10 +34,10 @@
   --pcb: #94202A; --pcb-edge: #5D0F16; --led: #FFB224;
   --ok: #3CC594; --warn: #F0B04A; --err: #FF7378;
   --code-bg: #11151A; --gutter: #181D23; --gutter-ink: #6C7782; color-scheme: dark;
+  --bb: #33373D; --bb-edge: #202327; --bb-hole: #A3AAB3; --bb-trench: #25282C; --bench-bg: #0F1317; --bench-dot: #1B2026;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-ui); font-size: 15px; line-height: 1.4;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 28px; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-ui); font-size: 15px; line-height: 1.4; margin: 0; overflow: hidden; }
 .wrap { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 h1 { font-size: 20px; line-height: 1.1; margin: 0; font-weight: 700; letter-spacing: .01em; }
 h1 small { display: block; font-size: 12px; font-weight: 500; color: var(--ink-2); letter-spacing: .08em; text-transform: uppercase; margin-top: 3px; }
@@ -44,10 +46,116 @@ button, select, input { font: inherit; color: inherit; }
 button, select { min-height: 38px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
-  background: var(--bg); padding-block: 8px; border-bottom: 1px solid var(--line); }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
-.bar .title { flex: 1 1 200px; min-width: 0; }
+.app { position: fixed; inset: 0; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
+.bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; z-index: 30;
+  background: var(--bg); padding: 6px max(12px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); }
+.bar .title { flex: 0 1 auto; min-width: 0; }
+.bar h1 { font-size: 17px; } .bar h1 small { font-size: 10px; margin-top: 1px; }
+.winbtns { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.winbtns .btn { min-height: 32px; font-weight: 500; }
+.winbtns .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.paltoggle { display: none; }
+.main { flex: 1; display: flex; min-height: 0; position: relative; }
+.pal { flex: none; width: 236px; background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; z-index: 25; }
+.pal-head { padding: 10px 12px 6px; display: flex; flex-direction: column; gap: 3px; } .pal-head b { font: 600 12px var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.pal-head .note { font-size: 12px; }
+.pal-list { flex: 1; overflow-y: auto; padding: 2px 8px 8px; display: flex; flex-direction: column; gap: 4px; }
+.pal-grp { font: 600 11px var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin: 8px 2px 0; padding-left: 8px; border-left: 4px solid var(--gc); }
+.pal-item { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; text-align: left; min-height: 44px; padding: 5px 10px; border: 1px solid var(--line); border-left: 4px solid var(--gc); border-radius: 6px; background: var(--panel-2); cursor: grab; touch-action: none; user-select: none; }
+.pal-item:hover { border-color: var(--ink-2); border-left-color: var(--gc); }
+.pal-item .pn { font-weight: 600; font-size: 13.5px; line-height: 1.2; } .pal-item .pm { grid-column: 1; font: 11px var(--f-mono); color: var(--ink-2); }
+.pal-item .pt { grid-row: 1 / span 2; grid-column: 2; align-self: center; font: 11px var(--f-mono); color: var(--ok); }
+.pal-item.used { opacity: .6; cursor: pointer; } .pal-item.armed { border-color: var(--accent); background: var(--accent-soft); }
+.pal-foot { padding: 8px; border-top: 1px solid var(--line); display: flex; gap: 6px; }
+.palghost { position: fixed; z-index: 100; pointer-events: none; background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 13px; padding: 4px 10px; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+.desk { flex: 1; position: relative; min-width: 0; overflow: hidden; background: var(--bench-bg); background-image: radial-gradient(var(--bench-dot) 1.2px, transparent 1.4px); background-size: 22px 22px; }
+#bench { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; outline: none; cursor: default; }
+#bench.armed { cursor: crosshair; }
+.zoomctl { position: absolute; top: 8px; right: 10px; display: flex; gap: 4px; z-index: 4; }
+.zoomctl .btn { min-width: 34px; min-height: 34px; padding: 0 8px; font-weight: 700; }
+#benchMsgs { position: absolute; left: 10px; bottom: 10px; z-index: 4; max-width: min(560px, calc(100% - 20px)); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+#benchMsgs summary { cursor: pointer; padding: 6px 10px; font-weight: 600; } #benchMsgs.ok summary { color: var(--ok); } #benchMsgs.warn summary { color: var(--warn); } #benchMsgs.bad summary { color: var(--err); } #benchMsgs.empty summary { color: var(--ink-2); }
+#benchMsgs ul { list-style: none; margin: 0; padding: 0 10px 8px; max-height: 190px; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+#benchMsgs li { border-left: 3px solid var(--ink-2); padding-left: 8px; } #benchMsgs li.warn { border-color: var(--warn); } #benchMsgs li.bad { border-color: var(--err); color: var(--err); font-weight: 600; }
+#benchMsgs ul:empty { display: none; }
+#benchSel { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 5; display: none; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; background: var(--panel); border: 1px solid var(--accent); border-radius: 8px; padding: 6px 10px; font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,.2); max-width: calc(100% - 40px); }
+#benchSel.on { display: flex; }
+#benchToast { pointer-events: none; position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 6; max-width: min(520px, calc(100% - 120px)); background: var(--ink); color: var(--bg); font-size: 13px; padding: 7px 12px; border-radius: 8px; display: none; text-align: center; }
+#benchToast.on { display: block; } #benchToast.bad { background: var(--err); color: #fff; }
+
+/* windows */
+.win { position: absolute; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 32px rgba(0,0,0,.28); display: flex; flex-direction: column; resize: both; overflow: hidden; min-width: 280px; min-height: 160px; z-index: 20; }
+.win[hidden] { display: none; } .win.front { border-color: var(--accent); }
+.wh { flex: none; display: flex; align-items: center; gap: 4px; padding: 0 6px 0 12px; min-height: 36px; background: var(--panel-2); border-bottom: 1px solid var(--line); cursor: move; touch-action: none; user-select: none; }
+.wt { flex: 1; font: 600 13px var(--f-ui); letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wx { border: 0; background: transparent; color: var(--ink-2); font-size: 20px; line-height: 1; min-height: 30px; min-width: 30px; border-radius: 6px; cursor: pointer; } .wx:hover { background: var(--line); color: var(--ink); } .wx.wm { font-size: 15px; }
+.wb { flex: 1; min-height: 0; overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.wb > * { flex: none; }
+.wb.flush { padding: 0; }
+.stackcol { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.insp .part { border: 0; padding: 0; } .insp .wires { display: none; } .insp { display: flex; flex-direction: column; gap: 10px; }
+.wstat { font-weight: 700; padding: 5px 10px; border-radius: 6px; } .wstat.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); } .wstat.bad { color: var(--err); background: color-mix(in srgb, var(--err) 12%, transparent); }
+.wmsg { margin: 0; padding-left: 18px; color: var(--err); font-size: 13px; }
+table.wtab tr.miss th, table.wtab tr.miss td { color: var(--ink-2); }
+@media (max-width: 720px) {
+  .paltoggle { display: inline-flex; align-items: center; }
+  .pal { position: absolute; left: 0; top: 0; bottom: 0; width: min(280px, 86vw); transform: translateX(-102%); transition: transform .18s; box-shadow: 4px 0 18px rgba(0,0,0,.3); }
+  body.paldrawer .pal { transform: none; }
+  .win { position: fixed !important; left: 0 !important; top: calc(env(safe-area-inset-top, 0px) + 92px) !important; width: auto !important; right: 0; bottom: 0; height: auto !important; border-radius: 12px 12px 0 0; resize: none; }
+  .bar h1 small { display: none; } .winbtns { margin-left: 0; width: 100%; }
+  #benchMsgs { max-width: calc(100% - 20px); } .zoomctl { top: auto; bottom: 64px; right: 8px; flex-direction: column; }
+}
+
+/* bench drawing */
+#bench .bb-body { fill: var(--bb); stroke: var(--bb-edge); stroke-width: 3; }
+#bench .bb-trench { fill: var(--bb-trench); }
+#bench .bb-hole { fill: var(--bb-hole); opacity: .8; }
+#bench .bb-num { fill: var(--bb-hole); font: 8px var(--f-mono); opacity: .65; }
+#bench .bb-note { fill: var(--bb-hole); font: 9px var(--f-ui); opacity: .55; }
+#bench .bb-plus { stroke: #D6342C; fill: #D6342C; stroke-width: 1.6; opacity: .85; } #bench .bb-minus { stroke: #2F6FDE; fill: #2F6FDE; stroke-width: 1.6; opacity: .85; }
+#bench .bb-sign { font: 700 13px var(--f-mono); stroke: none; }
+#bench .pcb { fill: var(--pcb); stroke: var(--pcb-edge); stroke-width: 3; }
+#bench .silk { fill: #F4E9EA; font: 600 9px var(--f-mono); letter-spacing: .04em; } #bench .silk.big { font-size: 17px; font-weight: 700; } #bench .silk.s { font-size: 9px; font-weight: 400; opacity: .85; } #bench .silk.dark { fill: #2A3036; }
+#bench .metal { fill: #AEB6BF; stroke: #6B747E; } #bench .ic { fill: #161A1F; } #bench .icx { fill: #D6DCE2; font: 500 12px var(--f-mono); } #bench .icx.s { font-size: 9px; opacity: .7; }
+#bench .led-off { fill: #3B2227; stroke: #E9C9CD; stroke-width: 1; } #bench .led-on { fill: var(--led); }
+#bench .swbase { fill: #2A3036; } #bench .cap { fill: #DDE1E6; stroke: #7B848E; stroke-width: 1.5; } #bench .cap.down { fill: #F2B8BC; } #bench .mcu-sw { cursor: pointer; }
+#bench .mcu-open { cursor: pointer; } #bench .mcu-open rect { fill: #F4E9EA; stroke: #7C1119; stroke-width: 1.5; } #bench .mcu-open text { fill: #7C1119; font: 700 12px var(--f-ui); } #bench .mcu-open:hover rect { fill: #fff; }
+#bench .pgrp { fill: #fff; opacity: .1; } #bench .pgrp.alt { opacity: .18; }
+#bench .mpad { fill: #E7C9A0; stroke: #7C1119; stroke-width: 1; } #bench .mpad.bus { stroke: #8458C4; stroke-width: 2; }
+#bench .mpad.out { fill: #5B646E; } #bench .mpad.out.hi, #bench .mpad.in.hi { fill: #2BC48A; } #bench .mpad.pwm { fill: #F5A524; } #bench .mpad.pwm.hi { fill: #FFD27A; } #bench .mpad.alt { fill: #8EC5FF; } #bench .mpad.in { fill: #D8DEE5; }
+#bench .mpad.sup.gnd { fill: #202428; stroke: #E7C9A0; } #bench .mpad.sup.v33 { fill: #D6342C; stroke: #F4E9EA; } #bench .mpad.sup.v5 { fill: #E8772E; stroke: #F4E9EA; }
+#bench .mplab { fill: #F4E9EA; font: 7.5px var(--f-mono); } #bench .mplab.sup { font-size: 8px; font-weight: 700; }
+#bench .bleg { stroke: #7F8791; stroke-width: 2.6; stroke-linecap: round; pointer-events: none; } #bench .bpin { fill: #C7A44A; stroke: #5B4A1C; stroke-width: 1.2; pointer-events: none; }
+#bench .bpbody { fill: #1F262E; stroke-width: 2; cursor: grab; } #bench .bphead { opacity: .95; cursor: grab; }
+#bench .bptitle { fill: #fff; font: 700 10px var(--f-ui); letter-spacing: .03em; pointer-events: none; }
+#bench .bplabel { fill: #C9D1D9; font: 7.5px var(--f-mono); pointer-events: none; } #bench .bplabel.vcc { fill: #FF9A8F; } #bench .bplabel.gnd { fill: #9CC2FF; } #bench .bplabel.com { fill: #FFD27A; } #bench .bplabel.bus { fill: #D4B8FF; }
+#bench .bpwr { stroke: #000; stroke-opacity: .4; stroke-width: .6; pointer-events: none; } #bench .bpwr.on { fill: #2BC48A; } #bench .bpwr.off { fill: #E5383B; }
+#bench .bpbadge { fill: #FF9A8F; font: 700 8.5px var(--f-ui); pointer-events: none; }
+#bench .bpart.off .bpbody { stroke: #E5383B; } #bench .bpart.sel .bpbody { stroke: #fff; stroke-width: 3; } #bench .bpart.lift { opacity: .35; }
+#bench .bkey rect { fill: #3C4652; stroke: #566270; } #bench .bkey text { fill: #E6EBF0; font: 600 11px var(--f-mono); pointer-events: none; } #bench .bkey { cursor: pointer; } #bench .bkey.down rect { fill: var(--accent); }
+#bench .bbtn circle { fill: #3C4652; stroke: #7C8794; stroke-width: 2.5; } #bench .bbtn text { fill: #E6EBF0; font: 600 9px var(--f-mono); pointer-events: none; } #bench .bbtn { cursor: pointer; } #bench .bbtn.down circle { fill: var(--accent); }
+#bench .bdip rect:first-child { fill: #D14B3F; } #bench .bdip .knob { fill: #F0F3F6; } #bench .bdip { cursor: pointer; }
+#bench .chipbody { fill: #0F1317; stroke: #55606B; } #bench .chipdot { fill: #55606B; } #bench .chiptxt { fill: #D6DCE2; font: 600 10px var(--f-mono); }
+#bench .bigtxt { fill: #FFD27A; font: 700 12px var(--f-mono); } #bench .bigtxt.s { font-size: 9px; font-weight: 500; fill: #C9D1D9; }
+#bench .lcdbg { fill: #3B4A12; opacity: .8; } #bench .lcdbg.on { fill: #6C7B2A; opacity: 1; } #bench .lcdbg.bl { fill: #9BC53D; opacity: 1; }
+#bench .lcdtxt { fill: #1B2506; font: 600 10.5px var(--f-mono); white-space: pre; }
+#bench .bled { fill: #3B2227; stroke: #A8727B; stroke-width: 1.2; } #bench .bled.on { fill: var(--led); stroke: #B77900; }
+#bench .partsvg { display: inline; } #bench .partsvg .k-body { fill: #5B6B7A; stroke: #3B4753; stroke-width: 2; } #bench .partsvg .k-onbody { fill: #E4ECF8; font: 600 12px var(--f-mono); }
+#bench .partsvg .k-txt { fill: #C9D1D9; font: 10px var(--f-mono); } #bench .partsvg .k-line { stroke: #C9D1D9; fill: none; stroke-width: 2; } #bench .partsvg .k-track { fill: #3A444E; }
+#bench .partsvg .k-wave { stroke: #E4ECF8; fill: none; stroke-width: 3; stroke-linecap: round; } #bench .partsvg .k-horn { stroke: #F5A524; stroke-width: 7; stroke-linecap: round; } #bench .partsvg .k-coil { fill: #1F262E; stroke: #7C8794; stroke-width: 1.5; }
+#bench .relaysvg .rl-body { fill: #2E5FA8; stroke: #1C3F78; stroke-width: 2; } #bench .relaysvg .rl-t { fill: #E4ECF8; font: 600 10px var(--f-mono); } #bench .relaysvg .rl-t.s { font-size: 8px; font-weight: 400; opacity: .8; }
+#bench .relaysvg .rl-coil { fill: none; stroke: #E4ECF8; stroke-width: 2; } #bench .relaysvg .rl-term { fill: #1F262E; stroke: #C9D1D9; stroke-width: 1.5; } #bench .relaysvg .rl-wire { stroke: #C9D1D9; stroke-width: 1.5; fill: none; }
+#bench .relaysvg .rl-arm { stroke: #fff; stroke-width: 3.5; stroke-linecap: round; } #bench .relaysvg .rl-lbl { fill: #C9D1D9; font: 10px var(--f-mono); }
+#bench .relaysvg .lamp-off { fill: #1F262E; stroke: #C9D1D9; stroke-width: 1.5; } #bench .relaysvg .lamp-on { fill: var(--led); } #bench .relaysvg .led-pwr { fill: #2BC48A; } #bench .relaysvg .led-in { fill: #FF4D4D; } #bench .relaysvg .led-dim { fill: #6B7782; opacity: .45; }
+#bench .bwire { cursor: pointer; } #bench .w-out { fill: none; stroke: #000; stroke-opacity: .35; stroke-width: 7.5; stroke-linecap: round; } #bench .w-col { fill: none; stroke-width: 4.6; stroke-linecap: round; }
+#bench .w-hit { fill: none; stroke: transparent; stroke-width: 10; stroke-linecap: round; pointer-events: stroke; } #bench .w-end { stroke: #000; stroke-opacity: .5; stroke-width: 1.2; cursor: grab; }
+#bench .bwire.sel .w-out { stroke: #fff; stroke-opacity: 1; stroke-width: 10; } #bench .bwire:hover .w-out { stroke-opacity: .6; }
+#bench .wprev { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-dasharray: 7 5; stroke-linecap: round; pointer-events: none; } #bench .wprev.good { stroke: #2BC48A; stroke-dasharray: none; }
+#bench .hring { fill: none; stroke: var(--accent); stroke-width: 2; pointer-events: none; } #bench .pend { fill: none; stroke: #2BC48A; stroke-width: 2.5; pointer-events: none; }
+#bench .bprev { pointer-events: none; } #bench .bprev rect { fill: rgba(43,196,138,.18); stroke: #2BC48A; stroke-width: 2; stroke-dasharray: 6 4; } #bench .bprev circle { fill: rgba(43,196,138,.5); } #bench .bprev line { stroke: #2BC48A; stroke-width: 2; }
+#bench .bprev text { fill: #2BC48A; font: 600 11px var(--f-ui); } #bench .bprev.bad rect { fill: rgba(229,56,59,.15); stroke: #E5383B; } #bench .bprev.bad circle { fill: rgba(229,56,59,.5); } #bench .bprev.bad line { stroke: #E5383B; } #bench .bprev.bad text { fill: #E5383B; }
+#bench .prevwhy { font: 600 12px var(--f-ui); }
+
 .ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .btn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 0 14px; font-weight: 600; cursor: pointer; }
 .btn:hover { border-color: var(--ink-2); }
@@ -243,9 +351,10 @@ dl.stat dt { color: var(--ink-2); } dl.stat dd { margin: 0; overflow-wrap: anywh
 .bl.err { color: var(--scr-err); } .bl.dim { color: var(--scr-dim); }
 </style>
 </head><body>
-<div class="wrap">
-  <div class="bar">
-    <div class="title"><h1>MSP432E401Y Simulator<small>MSP-EXP432E401Y LaunchPad, C in, behavior out</small></h1></div>
+<div class="app">
+  <header class="bar">
+    <div class="title"><h1>MSP432E401Y Bench<small>Breadboard, LaunchPad, C in, behavior out</small></h1></div>
+    <button id="palToggle" class="btn small paltoggle" type="button" aria-label="Show the parts list">Parts</button>
     <div class="ctl">
       <select id="exSel" aria-label="Example program"></select>
       <button id="runBtn" class="btn primary" type="button">Build &amp; Run</button>
@@ -260,11 +369,35 @@ dl.stat dt { color: var(--ink-2); } dl.stat dd { margin: 0; overflow-wrap: anywh
       </select>
       <span id="status" class="chip idle">idle</span>
     </div>
+    <div class="winbtns" role="group" aria-label="Windows">
+      <button class="btn small" type="button" data-win="program">Program</button>
+      <button class="btn small" type="button" data-win="board">LaunchPad</button>
+      <button class="btn small" type="button" data-win="term">Terminal</button>
+      <button class="btn small" type="button" data-win="scope">Analyzer</button>
+      <button class="btn small" type="button" data-win="bus">Bus decoder</button>
+      <button class="btn small" type="button" data-win="stat">Status</button>
+      <button class="btn small" type="button" data-win="help">Help</button>
+    </div>
+  </header>
+  <div class="main">
+    <aside class="pal" id="palette" aria-label="Parts">
+      <div class="pal-head"><b>Parts</b><span class="note">Drag a part onto the breadboard, then wire it. Drag from a hole or a header pin to another hole to add a jumper. Double-click a part for its details, or the LaunchPad for the program.</span></div>
+      <div class="pal-list" id="palList"></div>
+      <div class="pal-foot"><button id="benchClear" class="btn small" type="button">Clear bench</button></div>
+    </aside>
+    <div class="desk" id="desk">
+      <svg id="bench" tabindex="0" role="application" aria-label="Bench: a LaunchPad above a breadboard. Drag parts onto the breadboard and join them with jumper wires."></svg>
+      <div class="zoomctl"><button class="btn" id="zoomOut" type="button" aria-label="Zoom out">&minus;</button><button class="btn" id="zoomIn" type="button" aria-label="Zoom in">+</button><button class="btn" id="zoomFit" type="button" aria-label="Fit the bench to the screen">Fit</button></div>
+      <details id="benchMsgs" class="empty" open><summary id="benchMsgsSum">Bench check</summary><ul id="benchMsgsList"></ul></details>
+      <div id="benchSel"></div>
+      <div id="benchToast" role="status"></div>
+    </div>
   </div>
+</div>
 
-  <div class="grid">
-    <div class="col">
-      <section class="panel">
+<div id="stash" hidden>
+  <div id="pgmBody" class="stackcol">
+      <section class="stackcol">
         <header><h2>main.c</h2><span class="note" id="exNote"></span></header>
         <div class="dbgbar" role="toolbar" aria-label="Debugger controls">
           <label class="chk"><input type="checkbox" id="dbgOn"> Debug build</label>
@@ -277,7 +410,7 @@ dl.stat dt { color: var(--ink-2); } dl.stat dd { margin: 0; overflow-wrap: anywh
         <div class="editor"><div id="curline" aria-hidden="true"></div><div id="gutter" title="Click a line number to set a breakpoint"></div><textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" aria-label="C source code"></textarea></div>
         <div id="err" role="alert"></div>
       </section>
-      <details class="panel" id="dbgPanel" open>
+      <details id="dbgPanel" open>
         <summary><h2 style="display:inline">Debugger and registers</h2> <span class="note" id="dbgWhere"></span></summary>
         <div class="dbggrid">
           <div class="dbgcol">
@@ -296,24 +429,9 @@ dl.stat dt { color: var(--ink-2); } dl.stat dd { margin: 0; overflow-wrap: anywh
         <p class="note" id="dbgRegMsg" role="status">Values update live. Click a value to write a register.</p>
         <div class="regwrap"><table class="regs"><tbody id="dbgRegs"></tbody></table></div>
       </details>
-      <details class="panel help">
-        <summary><h2 style="display:inline">What this simulator models</h2></summary>
-        <ul>
-          <li>C is translated to JavaScript and run on a virtual clock. <code>SysCtlDelay</code>, timers, UART baud rate and ADC conversions take the time they would on the board. Plain statements are free, so tight loops are only approximately timed.</li>
-          <li>DriverLib calls for system control, GPIO (with interrupts), Timer0-7, SysTick, UART0, I2C0, SSI0, ADC0/1 (processor trigger), PWM0 and NVIC.</li>
-          <li>Faults are enforced: using a peripheral before <code>SysCtlPeripheralEnable</code> is a hard fault, a missing <code>TimerIntClear</code> is an interrupt storm, and the user switches read as pressed unless you enable the weak pull-ups.</li>
-          <li>Parts: tick any of the on-board items or add-on parts in Components (4x4 keypad, relay, LED bar, RGB LED, 7-segment display, buzzer, DC motor, servo, stepper, DIP switches, push buttons) and wire them to any pins. Parts read the pin signals, so GPIO, PWM and timer-driven outputs all work. Outputs of one PWM generator share a period, as on the chip.</li>
-          <li>Register-level code works too: <code>GPIO_PORTN_AHB-&gt;DATA</code>, <code>SYSCTL-&gt;RCGCGPIO</code>, <code>TIMER0_CTL_R</code>, <code>HWREG()</code> and raw addresses such as <code>*(volatile uint32_t *)0x400643FC</code>, with NVIC, SysTick, and the PLL clock registers. Touching a peripheral with its clock off is a bus fault.</li>
-          <li>I2C0 (PB2 SCL, PB3 SDA, master mode, DriverLib or registers) and SSI0 (PA2 CLK, PA3 FSS, PA4 MOSI, PA5 MISO, SPI master, modes 0-3) run bit-accurately on a virtual wire at the programmed clock rate. Virtual devices on the bench answer them: temperature sensor, EEPROMs, LCD and OLED, 74HC595. The bus decoder lists every transaction (ACK/NACK, chip-select frames) and the analyzer draws SCL, SDA, CLK, MOSI and MISO. I2C1-3, SSI1-3 and slave modes are not simulated.</li>
-          <li>Not supported: pointer arithmetic such as <code>*s++</code>, structs, function pointers, DMA, Ethernet, USB, CAN. <code>UARTprintf</code> has no <code>%f</code>, like the real library. <code>printf</code> does.</li>
-          <li>Debugger: tick Debug build, then click a line number (or press F9) to set a breakpoint. Step over, into and out (F10, F11, Shift+F11) work across functions and interrupt handlers; the call stack marks handlers that interrupted <code>main</code>. Variables, watch expressions and every peripheral register can be inspected while stopped, and registers can be edited. Debug builds run somewhat slower.</li>
-                    <li>Interrupt handlers are found by the vector-table name (<code>GPIOJ_Handler</code>, <code>Timer0A_Handler</code>, <code>SysTick_Handler</code>, <code>UART0_Handler</code>, <code>I2C0_Handler</code>, <code>SSI0_Handler</code>, <code>ADC0SS3_Handler</code>) or registered with <code>IntRegister</code>.</li>
-        </ul>
-      </details>
-    </div>
-
-    <div class="col">
-      <section class="panel">
+  </div>
+  <div id="boardBody" class="stackcol">
+      <section class="stackcol">
         <header><h2>LaunchPad</h2><span class="note" id="boardNote">D1 PN1 / D2 PN0 / D3 PF4 / D4 PF0</span></header>
         <div class="boardbox">
           <svg id="board" viewBox="0 0 400 250" role="img" aria-label="MSP-EXP432E401Y LaunchPad with four user LEDs and two user switches">
@@ -339,21 +457,15 @@ dl.stat dt { color: var(--ink-2); } dl.stat dd { margin: 0; overflow-wrap: anywh
           <button class="hold" id="sw1" type="button" aria-label="Hold to press user switch 1">SW1<small>PJ0 hold to press</small></button>
           <button class="hold" id="sw2" type="button" aria-label="Hold to press user switch 2">SW2<small>PJ1 hold to press</small></button>
         </div>
+        <h2>On-board items</h2>
+        <div id="obChecks" class="obchecks"></div>
         <h2>Analog inputs</h2>
         <div class="analog" id="analog"></div>
         <h2>Pins in use <span class="note" style="text-transform:none;letter-spacing:0;font-weight:400">(tap an input pin to drive it: floating, high, low)</span></h2>
         <div class="pins" id="pins"><span class="note">No pins configured yet.</span></div>
       </section>
-
-      <section class="panel" id="parts">
-        <header><h2>Components</h2><button class="btn small" id="wiringReset" type="button">Reset wiring</button></header>
-        <p class="note">Tick the parts on your bench. A part that is unticked is disconnected from its pins. Pick the pins each part is wired to inside its card.</p>
-        <div class="checks" id="partChecks" role="group" aria-label="Parts on the bench"></div>
-        <div id="partsWarn" class="warnline" role="status"></div>
-        <div id="partCards"></div>
-      </section>
-
-      <section class="panel">
+  </div>
+  <div id="termBody" class="stackcol"><section class="stackcol">
         <header><h2>UART0 virtual COM port</h2><span class="note"><span id="baud">115200</span> baud, 8N1</span></header>
         <div id="term" class="screen" role="log" aria-live="off" tabindex="0"></div>
         <form class="termrow" id="termForm">
@@ -361,30 +473,40 @@ dl.stat dt { color: var(--ink-2); } dl.stat dd { margin: 0; overflow-wrap: anywh
           <button class="btn" type="submit">Send</button>
           <button class="btn" type="button" id="termClear">Clear</button>
         </form>
-      </section>
-
-      <section class="panel">
+      </section></div>
+  <div id="scopeBody" class="stackcol"><section class="stackcol">
         <header><h2>Logic analyzer</h2>
           <select id="win" aria-label="Time window"><option value="0.001">1 ms</option><option value="0.01">10 ms</option><option value="0.1">100 ms</option><option value="1">1 s</option><option value="5" selected>5 s</option><option value="20">20 s</option></select>
         </header>
         <canvas id="scope" aria-label="Logic analyzer trace of GPIO pins"></canvas>
-      </section>
-
-      <section class="panel" id="busPanel" hidden>
+      </section></div>
+  <div id="busBody" class="stackcol"><section id="busPanel">
         <header><h2>Bus decoder</h2>
           <label class="chk"><input type="checkbox" id="busPull"> 4.7 k pull-ups on SDA and SCL</label>
           <button class="btn small" id="busClear" type="button">Clear</button>
         </header>
         <div id="busLog" class="screen buslog" role="log" aria-live="off" tabindex="0"></div>
         <p class="note">I2C: S start, Sr repeated start, P stop. Each byte shows ACK or NACK. SPI: one line per chip-select frame, MOSI then MISO bytes in hex. The waveforms appear in the logic analyzer above (PB2 SCL, PB3 SDA, PA2 CLK, PA4 MOSI, PA5 MISO).</p>
-      </section>
-
-      <section class="panel">
+      </section></div>
+  <div id="statBody" class="stackcol"><section class="stackcol">
         <header><h2>Status</h2></header>
         <dl class="stat" id="stat"></dl>
-      </section>
-    </div>
-  </div>
+      </section></div>
+  <div id="helpBody" class="stackcol"><div class="help">
+        
+        <ul>
+          <li>C is translated to JavaScript and run on a virtual clock. <code>SysCtlDelay</code>, timers, UART baud rate and ADC conversions take the time they would on the board. Plain statements are free, so tight loops are only approximately timed.</li>
+          <li>DriverLib calls for system control, GPIO (with interrupts), Timer0-7, SysTick, UART0, I2C0, SSI0, ADC0/1 (processor trigger), PWM0 and NVIC.</li>
+          <li>Faults are enforced: using a peripheral before <code>SysCtlPeripheralEnable</code> is a hard fault, a missing <code>TimerIntClear</code> is an interrupt storm, and the user switches read as pressed unless you enable the weak pull-ups.</li>
+          <li>The bench: drag parts from the list onto the breadboard, then join them with jumper wires from a hole in the part's column to a LaunchPad header pin. The two halves of the board are separate, each column of five holes is joined, and the power rails run the whole length. Every part needs its power wires (VCC and GND, or the COM pin) or it does nothing, and the bench check says what is missing. Wiring 3V3 to GND is a short circuit and stops the program. Parts available: 4x4 keypad, relay, LED bar, RGB LED, 7-segment display, buzzer, DC motor, servo, stepper, DIP switches, push buttons, TMP102, 24C02, LCD, OLED, 25LC256 and 74HC595. Parts read the pin signals, so GPIO and PWM both work. Choosing an example puts its parts on the bench, wired the way its code expects. Double-click a part for its details, double-click the LaunchPad for the editor and debugger.</li>
+          <li>Register-level code works too: <code>GPIO_PORTN_AHB-&gt;DATA</code>, <code>SYSCTL-&gt;RCGCGPIO</code>, <code>TIMER0_CTL_R</code>, <code>HWREG()</code> and raw addresses such as <code>*(volatile uint32_t *)0x400643FC</code>, with NVIC, SysTick, and the PLL clock registers. Touching a peripheral with its clock off is a bus fault.</li>
+          <li>I2C0 (PB2 SCL, PB3 SDA, master mode, DriverLib or registers) and SSI0 (PA2 CLK, PA3 FSS, PA4 MOSI, PA5 MISO, SPI master, modes 0-3) run bit-accurately on a virtual wire at the programmed clock rate. Virtual devices on the bench answer them: temperature sensor, EEPROMs, LCD and OLED, 74HC595. The bus decoder lists every transaction (ACK/NACK, chip-select frames) and the analyzer draws SCL, SDA, CLK, MOSI and MISO. I2C1-3, SSI1-3 and slave modes are not simulated.</li>
+          <li>Not supported: pointer arithmetic such as <code>*s++</code>, structs, function pointers, DMA, Ethernet, USB, CAN. <code>UARTprintf</code> has no <code>%f</code>, like the real library. <code>printf</code> does.</li>
+          <li>Debugger: tick Debug build, then click a line number (or press F9) to set a breakpoint. Step over, into and out (F10, F11, Shift+F11) work across functions and interrupt handlers; the call stack marks handlers that interrupted <code>main</code>. Variables, watch expressions and every peripheral register can be inspected while stopped, and registers can be edited. Debug builds run somewhat slower.</li>
+                    <li>Interrupt handlers are found by the vector-table name (<code>GPIOJ_Handler</code>, <code>Timer0A_Handler</code>, <code>SysTick_Handler</code>, <code>UART0_Handler</code>, <code>I2C0_Handler</code>, <code>SSI0_Handler</code>, <code>ADC0SS3_Handler</code>) or registered with <code>IntRegister</code>.</li>
+        </ul>
+      </div></div>
+  <div id="partCards"></div>
 </div>
 <script>
 (function (global, factory) {
@@ -8941,6 +9063,443 @@ P.partsApply = function () {
 };
 return M;
 })(typeof MSP !== 'undefined' ? MSP : require('./core.js'));
+/* Bench model (no DOM): a real solderless breadboard, the LaunchPad's header pins, parts plugged into the board and jumper wires.
+   The circuit is a netlist: every breadboard column strip, power rail and header pin is a node, wires join nodes, and the nets that
+   result decide which microcontroller pin each part pin reaches and whether each part has power. derive() writes that into the
+   simulator (S.mods, S.keypad, S.relay), so the parts model underneath is unchanged. */
+(function (M) {
+'use strict';
+
+/* ---------- geometry (world units, shared with the drawing code) ---------- */
+var G = M.BENCH = { PITCH: 20, COLS: 60, RAILN: 50, BX: 30, BW: 1280, BY: 400, BH: 356, MCU_H: 170 };
+G.X = function (c) { return 80 + (c - 1) * 20; };
+var ROWY = { j: 74, i: 94, h: 114, g: 134, f: 154, e: 198, d: 218, c: 238, b: 258, a: 278 };
+var RAILY = { 'T+': 16, 'T-': 36, 'B+': 316, 'B-': 336 };
+G.ROWS = ['j', 'i', 'h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
+G.RAILS = ['T+', 'T-', 'B+', 'B-'];
+G.PINROW = { U: 'j', L: 'a' };                       // parts plug into the outer row of their half
+G.FREE = { U: ['f', 'g', 'h', 'i'], L: ['e', 'd', 'c', 'b'] };   // free holes, nearest the trench first
+G.rowOf = function (half) { return G.PINROW[half]; };
+G.halfOf = function (row) { return 'abcde'.indexOf(row) >= 0 ? 'L' : 'U'; };
+G.railX = function (k) { return G.X(1) + (k + Math.floor(k / 5)) * 20; };
+G.railY = function (rail) { return G.BY + RAILY[rail]; };
+G.rowY = function (row) { return G.BY + ROWY[row]; };
+
+var OUT_ROW = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], IN_ROW = ['J', 'K', 'L', 'M', 'N', 'P', 'Q'];
+var SUPPLY = [['3V3', 0], ['3V3', 1], ['5V', 0], ['5V', 1], ['GND', 0], ['GND', 1], ['GND', 2]];
+var MCUXY = {}, MCUPINS = [];
+(function () {
+  var y1 = G.MCU_H - 24, y2 = G.MCU_H - 48, i, p;
+  SUPPLY.forEach(function (s, k) { MCUXY['m:' + s[0] + '.' + s[1]] = { x: 54 + k * 16, y: y1, sup: s[0] }; });
+  OUT_ROW.forEach(function (L, pi) { for (i = 0; i < 8; i++) { MCUXY['m:' + L + i] = { x: 178 + pi * 140 + i * 16, y: y1, port: L, bit: i }; } });
+  IN_ROW.forEach(function (L, pi) { for (i = 0; i < 8; i++) { MCUXY['m:' + L + i] = { x: 178 + pi * 140 + i * 16, y: y2, port: L, bit: i }; } });
+  for (p in MCUXY) MCUPINS.push(p);
+})();
+G.MCUPINS = MCUPINS;
+G.mcuXY = function (ref) { return MCUXY[ref] || null; };
+G.GROUPS = { out: OUT_ROW, inn: IN_ROW, supply: SUPPLY };
+
+/* ---------- references ---------- */
+// h:<col><row> breadboard hole, r:<rail>:<k> power rail hole, m:<port><bit> or m:<supply>.<n> header pin.
+function parseRef(ref) {
+  if (typeof ref !== 'string') return null;
+  var m = /^h:(\d{1,2})([a-j])$/.exec(ref);
+  if (m) { var c = +m[1]; if (c < 1 || c > G.COLS) return null; return { k: 'h', col: c, row: m[2], half: G.halfOf(m[2]) }; }
+  m = /^r:(T\+|T-|B\+|B-):(\d{1,2})$/.exec(ref);
+  if (m) { var i = +m[2]; if (i < 0 || i >= G.RAILN) return null; return { k: 'r', rail: m[1], idx: i }; }
+  if (MCUXY[ref]) return { k: 'm', pin: ref.slice(2), sup: MCUXY[ref].sup || null };
+  return null;
+}
+function nodeOf(ref) {
+  var r = parseRef(ref); if (!r) return null;
+  if (r.k === 'h') return r.half + r.col;
+  if (r.k === 'r') return r.rail;
+  return r.sup ? r.sup : ref;
+}
+G.parseRef = parseRef; G.nodeOf = nodeOf;
+G.xy = function (ref) {
+  var r = parseRef(ref); if (!r) return null;
+  if (r.k === 'h') return { x: G.X(r.col), y: G.rowY(r.row) };
+  if (r.k === 'r') return { x: G.railX(r.idx), y: G.railY(r.rail) };
+  var p = MCUXY[ref]; return { x: p.x, y: p.y };
+};
+G.holeRef = function (col, row) { return 'h:' + col + row; };
+// Nearest target (breadboard hole, rail hole or header pin) to a world point, or null.
+G.refAt = function (x, y, tol) {
+  tol = tol || 9;
+  var best = null, bd = tol * tol, k, d, p;
+  if (y >= G.BY - 4 && y <= G.BY + G.BH + 4) {
+    var col = Math.round((x - 80) / 20) + 1;
+    for (var c = col - 1; c <= col + 1; c++) {
+      if (c < 1 || c > G.COLS) continue;
+      for (var ri = 0; ri < 10; ri++) { var row = G.ROWS[ri]; d = Math.pow(G.X(c) - x, 2) + Math.pow(G.rowY(row) - y, 2); if (d < bd) { bd = d; best = G.holeRef(c, row); } }
+    }
+    G.RAILS.forEach(function (rl) {
+      var ry = G.railY(rl); if (Math.abs(ry - y) > tol) return;
+      var kk = Math.round((x - G.X(1)) / 20); // approximate, then refine across the group gap
+      for (var q = 0; q < G.RAILN; q++) { var dx = G.railX(q) - x; if (Math.abs(dx) > tol) continue; d = dx * dx + Math.pow(ry - y, 2); if (d < bd) { bd = d; best = 'r:' + rl + ':' + q; } }
+    });
+  }
+  if (y < G.MCU_H + 6) for (k = 0; k < MCUPINS.length; k++) { p = MCUXY[MCUPINS[k]]; d = Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2); if (d < bd) { bd = d; best = MCUPINS[k]; } }
+  return best;
+};
+
+/* ---------- part catalogue ---------- */
+// pins: n = pin name, r = role (sig, vcc, gnd, com). vcc: supplies it accepts. bus: pins that must reach a fixed MCU pin.
+function P(n, r) { return { n: n, r: r || 'sig' }; }
+function seq(p, n, from) { var o = []; for (var i = 0; i < n; i++) o.push(P(p + (i + (from === undefined ? 1 : from)))); return o; }
+var ANY = ['3V3', '5V'];
+var DEFS = M.PARTDEFS = {
+  keypad:     { label: '4x4 keypad', grp: 'Input', bodyW: 160, bodyH: 150, pref: 'any',
+    pins: seq('R', 4).concat(seq('C', 4)), note: 'A matrix with no power. A pressed key joins its row to its column.' },
+  btns:       { label: 'Push buttons (4)', grp: 'Input', bodyW: 120, bodyH: 70, pref: 'any', com: 'COM',
+    pins: [P('COM', 'com')].concat(seq('B', 4)), comHelp: 'COM to GND makes a pressed button pull its pin low; COM to 3V3 makes it pull the pin high.' },
+  dip:        { label: 'DIP switches (4)', grp: 'Input', bodyW: 120, bodyH: 90, pref: 'any', com: 'COM',
+    pins: [P('COM', 'com')].concat(seq('S', 4)), comHelp: 'COM to GND makes a closed switch pull its pin low; COM to 3V3 makes it pull the pin high.' },
+  ledbar:     { label: 'LED bar (8 LEDs)', grp: 'Output', bodyW: 180, bodyH: 70, pref: 'any', com: 'COM',
+    pins: [P('COM', 'com')].concat(seq('L', 8)), comHelp: 'COM to GND: an LED lights when its pin is high. COM to 3V3: an LED lights when its pin is low.' },
+  rgb:        { label: 'RGB LED', grp: 'Output', bodyW: 100, bodyH: 100, pref: 'any', com: 'COM',
+    pins: [P('COM', 'com'), P('R'), P('G'), P('B')], comHelp: 'COM to GND is a common-cathode LED (high lights a color). COM to 3V3 is common-anode (low lights a color).' },
+  seg:        { label: '7-segment display', grp: 'Output', bodyW: 180, bodyH: 130, pref: 'any', com: 'COM',
+    pins: [P('COM', 'com'), P('a'), P('b'), P('c'), P('d'), P('e'), P('f'), P('g'), P('dp')], comHelp: 'COM to GND is common-cathode (high lights a segment). COM to 3V3 is common-anode (low lights a segment).' },
+  buzzer:     { label: 'Buzzer', grp: 'Output', bodyW: 100, bodyH: 70, pref: 'any', vcc: ANY, vccName: 'VCC',
+    pins: [P('VCC', 'vcc'), P('GND', 'gnd'), P('SIG')] },
+  relay:      { label: 'Relay module', grp: 'Output', bodyW: 150, bodyH: 110, pref: 'L', vcc: ['5V'],
+    pins: [P('VCC', 'vcc'), P('GND', 'gnd'), P('IN')] },
+  motor:      { label: 'DC motor + H-bridge', grp: 'Output', bodyW: 150, bodyH: 110, pref: 'L', vcc: ['5V'],
+    pins: [P('VCC', 'vcc'), P('GND', 'gnd'), P('IN1'), P('IN2'), P('EN')], note: 'EN left unwired keeps the bridge enabled, like the jumper on a real module.' },
+  servo:      { label: 'Servo', grp: 'Output', bodyW: 120, bodyH: 100, pref: 'L', vcc: ['5V'],
+    pins: [P('GND', 'gnd'), P('VCC', 'vcc'), P('SIG')] },
+  stepper:    { label: 'Stepper motor', grp: 'Output', bodyW: 140, bodyH: 120, pref: 'L', vcc: ['5V'],
+    pins: [P('VCC', 'vcc'), P('GND', 'gnd')].concat(seq('IN', 4)) },
+  i2c_tmp:    { label: 'Temperature sensor (TMP102)', grp: 'I2C0 devices', bodyW: 100, bodyH: 70, pref: 'U', vcc: ['3V3'], bus: { SCL: 'B2', SDA: 'B3' },
+    pins: [P('VCC', 'vcc'), P('GND', 'gnd'), P('SCL', 'bus'), P('SDA', 'bus')] },
+  i2c_eeprom: { label: 'EEPROM 24C02 (256 B)', grp: 'I2C0 devices', bodyW: 100, bodyH: 70, pref: 'U', vcc: ANY, bus: { SCL: 'B2', SDA: 'B3' },
+    pins: [P('VCC', 'vcc'), P('GND', 'gnd'), P('SCL', 'bus'), P('SDA', 'bus')] },
+  i2c_lcd:    { label: 'LCD 16x2 + PCF8574', grp: 'I2C0 devices', bodyW: 180, bodyH: 100, pref: 'L', vcc: ['5V'], bus: { SCL: 'B2', SDA: 'B3' },
+    pins: [P('GND', 'gnd'), P('VCC', 'vcc'), P('SDA', 'bus'), P('SCL', 'bus')] },
+  i2c_oled:   { label: 'OLED 128x64 (SSD1306)', grp: 'I2C0 devices', bodyW: 160, bodyH: 110, pref: 'U', vcc: ANY, bus: { SCL: 'B2', SDA: 'B3' },
+    pins: [P('GND', 'gnd'), P('VCC', 'vcc'), P('SCL', 'bus'), P('SDA', 'bus')] },
+  spi_eeprom: { label: 'EEPROM 25LC256 (32 KB)', grp: 'SSI0 devices', bodyW: 120, bodyH: 70, pref: 'U', vcc: ANY, bus: { SCK: 'A2', MOSI: 'A4', MISO: 'A5' },
+    pins: [P('VCC', 'vcc'), P('GND', 'gnd'), P('CS'), P('SCK', 'bus'), P('MOSI', 'bus'), P('MISO', 'bus')] },
+  spi_595:    { label: '74HC595 + 8 LEDs', grp: 'SSI0 devices', bodyW: 180, bodyH: 80, pref: 'U', vcc: ANY, bus: { SCK: 'A2', MOSI: 'A4' },
+    pins: [P('VCC', 'vcc'), P('GND', 'gnd'), P('CS'), P('SCK', 'bus'), P('MOSI', 'bus')] }
+};
+var ORDER = M.PARTORDER = ['keypad', 'btns', 'dip', 'ledbar', 'rgb', 'seg', 'buzzer', 'relay', 'motor', 'servo', 'stepper', 'i2c_tmp', 'i2c_eeprom', 'i2c_lcd', 'i2c_oled', 'spi_eeprom', 'spi_595'];
+ORDER.forEach(function (t) { var d = DEFS[t]; d.id = t; d.reserve = Math.max(d.pins.length, Math.ceil(d.bodyW / 20)); });
+var PINLABEL = { B2: 'I2C0 SCL', B3: 'I2C0 SDA', A2: 'SSI0 CLK', A4: 'SSI0 MOSI', A5: 'SSI0 MISO' };
+var SUPNAME = { '3V3': '3V3', '5V': '5 V', GND: 'GND' };
+function volts(s) { return s === '3V3' ? '3.3 V' : s === '5V' ? '5 V' : s; }
+
+/* default pins used when a part is placed for an example (the pins the example programs expect) */
+var DEFPIN = M.BENCHPINS = {
+  keypad: { R1: 'K0', R2: 'K1', R3: 'K2', R4: 'K3', C1: 'L0', C2: 'L1', C3: 'L2', C4: 'L3' },
+  relay: { IN: 'M0' },
+  ledbar: { L1: 'D0', L2: 'D1', L3: 'D2', L4: 'D3', L5: 'D4', L6: 'D5', L7: 'D6', L8: 'D7' },
+  rgb: { R: 'F1', G: 'F2', B: 'F3' },
+  seg: { a: 'C0', b: 'C1', c: 'C2', d: 'C3', e: 'C4', f: 'C5', g: 'C6', dp: 'C7' },
+  buzzer: { SIG: 'G0' }, motor: { IN1: 'H0', IN2: 'H1', EN: 'G1' }, servo: { SIG: 'K4' },
+  stepper: { IN1: 'P0', IN2: 'P1', IN3: 'P2', IN4: 'P3' },
+  dip: { S1: 'Q0', S2: 'Q1', S3: 'Q2', S4: 'Q3' }, btns: { B1: 'B0', B2: 'B1', B3: 'B2', B4: 'B3' },
+  i2c_tmp: { SCL: 'B2', SDA: 'B3' }, i2c_eeprom: { SCL: 'B2', SDA: 'B3' }, i2c_lcd: { SCL: 'B2', SDA: 'B3' }, i2c_oled: { SCL: 'B2', SDA: 'B3' },
+  spi_eeprom: { CS: 'P4', SCK: 'A2', MOSI: 'A4', MISO: 'A5' }, spi_595: { CS: 'P5', SCK: 'A2', MOSI: 'A4' }
+};
+
+/* ---------- how a part's nets become simulator settings ---------- */
+function bits(S, a) { return a; }
+var APPLY = {
+  keypad: function (S, c) {
+    var k = S.keypad, old = S.kpPorts(), i;
+    for (i = 0; i < 4; i++) { k.rows[i] = c.pin('R' + (i + 1)); k.cols[i] = c.pin('C' + (i + 1)); }
+    S.setKeypadOn(c.on);
+    old.forEach(function (L) { S.gpioUpdate(L); });
+  },
+  relay: function (S, c) { S.setRelay({ pin: c.pin('IN'), on: c.on }); },
+  ledbar: function (S, c) { var m = S.mods.ledbar; for (var i = 0; i < 8; i++) m.pins[i] = c.pin('L' + (i + 1)); m.low = c.sup('COM') !== 'GND'; },
+  rgb: function (S, c) { var m = S.mods.rgb; m.pins[0] = c.pin('R'); m.pins[1] = c.pin('G'); m.pins[2] = c.pin('B'); m.anode = c.sup('COM') !== 'GND'; },
+  seg: function (S, c) { var m = S.mods.seg; ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'].forEach(function (n, i) { m.pins[i] = c.pin(n); }); m.anode = c.sup('COM') !== 'GND'; },
+  buzzer: function (S, c) { S.mods.buzzer.pin = c.pin('SIG'); },
+  motor: function (S, c) { var m = S.mods.motor; m.in1 = c.pin('IN1'); m.in2 = c.pin('IN2'); m.en = c.pin('EN'); },
+  servo: function (S, c) { S.mods.servo.pin = c.pin('SIG'); },
+  stepper: function (S, c) { for (var i = 0; i < 4; i++) S.mods.stepper.pins[i] = c.pin('IN' + (i + 1)); },
+  dip: function (S, c) { var m = S.mods.dip; for (var i = 0; i < 4; i++) m.pins[i] = c.pin('S' + (i + 1)); m.vcc = c.sup('COM') !== 'GND'; },
+  btns: function (S, c) { var m = S.mods.btns; for (var i = 0; i < 4; i++) m.pins[i] = c.pin('B' + (i + 1)); m.vcc = c.sup('COM') !== 'GND'; },
+  i2c_tmp: function () {}, i2c_eeprom: function () {}, i2c_lcd: function () {}, i2c_oled: function () {},
+  spi_eeprom: function (S, c) { S.mods.spi_eeprom.cs = c.pin('CS'); },
+  spi_595: function (S, c) { S.mods.spi_595.cs = c.pin('CS'); }
+};
+
+// The pin map a simulator configuration currently holds for a part (used to carry older saved wiring over to the bench).
+M.pinMapOf = function (S, t) {
+  var m = S.mods, o = {}, i;
+  function arr(prefix, a, from) { for (var k = 0; k < a.length; k++) if (a[k]) o[prefix + (k + (from === undefined ? 1 : from))] = a[k]; }
+  if (t === 'keypad') { arr('R', S.keypad.rows); arr('C', S.keypad.cols); }
+  else if (t === 'relay') { if (S.relay.pin) o.IN = S.relay.pin; }
+  else if (t === 'ledbar') arr('L', m.ledbar.pins);
+  else if (t === 'rgb') { ['R', 'G', 'B'].forEach(function (n, k) { if (m.rgb.pins[k]) o[n] = m.rgb.pins[k]; }); }
+  else if (t === 'seg') { ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'dp'].forEach(function (n, k) { if (m.seg.pins[k]) o[n] = m.seg.pins[k]; }); }
+  else if (t === 'buzzer') { if (m.buzzer.pin) o.SIG = m.buzzer.pin; }
+  else if (t === 'motor') { if (m.motor.in1) o.IN1 = m.motor.in1; if (m.motor.in2) o.IN2 = m.motor.in2; if (m.motor.en) o.EN = m.motor.en; }
+  else if (t === 'servo') { if (m.servo.pin) o.SIG = m.servo.pin; }
+  else if (t === 'stepper') arr('IN', m.stepper.pins);
+  else if (t === 'dip') arr('S', m.dip.pins);
+  else if (t === 'btns') arr('B', m.btns.pins);
+  else if (t === 'spi_eeprom' || t === 'spi_595') { var d = {}; Object.keys(M.BENCHPINS[t]).forEach(function (k) { d[k] = M.BENCHPINS[t][k]; }); if (m[t].cs) d.CS = m[t].cs; return d; }
+  else return null;
+  return o;
+};
+
+/* ---------- the bench ---------- */
+function Bench() { this.parts = []; this.wires = []; this.seq = 1; this.applied = {}; this.last = null; this.onboard = { leds: true, sw: true }; }
+M.Bench = Bench;
+var B = Bench.prototype;
+Bench.G = G;
+
+B.partOf = function (type) { for (var i = 0; i < this.parts.length; i++) if (this.parts[i].type === type) return this.parts[i]; return null; };
+B.partById = function (id) { for (var i = 0; i < this.parts.length; i++) if (this.parts[i].id === id) return this.parts[i]; return null; };
+B.wireById = function (id) { for (var i = 0; i < this.wires.length; i++) if (this.wires[i].id === id) return this.wires[i]; return null; };
+B.pinRef = function (part, k) { return G.holeRef(part.col + k, G.PINROW[part.half]); };
+// Where each pin of a part sits.
+B.pinRefs = function (part) { var s = this; return DEFS[part.type].pins.map(function (p, k) { return s.pinRef(part, k); }); };
+
+// Why a part cannot go at (col, half), or '' when it fits. skip = a part being moved.
+B.whyNot = function (type, col, half, skip) {
+  var d = DEFS[type]; if (!d) return 'Unknown part.';
+  if (half !== 'U' && half !== 'L') return 'Pick the upper or lower half of the board.';
+  if (!(col >= 1) || col + d.pins.length - 1 > G.COLS || col !== Math.floor(col)) return 'The part does not fit on the board there.';
+  var other = this.partOf(type); if (other && other !== skip) return 'Only one ' + d.label + ' is supported on the bench.';
+  var end = col + d.reserve - 1;
+  for (var i = 0; i < this.parts.length; i++) {
+    var q = this.parts[i]; if (q === skip || q.half !== half) continue;
+    var qe = q.col + DEFS[q.type].reserve - 1;
+    if (!(end < q.col || col > qe)) return 'That spot is taken by the ' + DEFS[q.type].label + '.';
+  }
+  var row = G.PINROW[half], me = this;
+  for (var k = 0; k < d.pins.length; k++) {
+    var ref = G.holeRef(col + k, row);
+    for (var w = 0; w < this.wires.length; w++) if (this.wires[w].a === ref || this.wires[w].b === ref) return 'A wire is plugged into that hole.';
+  }
+  return '';
+};
+B.addPart = function (type, col, half, auto) {
+  var why = this.whyNot(type, col, half); if (why) { this.lastError = why; return null; }
+  var p = { id: this.seq++, type: type, col: col, half: half, auto: !!auto }; this.parts.push(p); this.lastError = ''; return p;
+};
+B.movePart = function (id, col, half) {
+  var p = this.partById(id); if (!p) return false;
+  var why = this.whyNot(p.type, col, half, p); if (why) { this.lastError = why; return false; }
+  p.col = col; p.half = half; p.auto = false; this.lastError = ''; return true;
+};
+B.removePart = function (id) { var n = this.parts.length; this.parts = this.parts.filter(function (p) { return p.id !== id; }); return this.parts.length < n; };
+
+// A hole holds one wire end or one part pin. Header pins and supply pins take any number of wires.
+B.occupied = function (ref, skipWire) {
+  var r = parseRef(ref); if (!r) return true;
+  if (r.k === 'h') {
+    for (var i = 0; i < this.parts.length; i++) {
+      var p = this.parts[i];
+      if (G.PINROW[p.half] === r.row && r.col >= p.col && r.col < p.col + DEFS[p.type].pins.length) return true;
+    }
+  }
+  if (r.k === 'm') return false;
+  for (var w = 0; w < this.wires.length; w++) { var x = this.wires[w]; if (x !== skipWire && (x.a === ref || x.b === ref)) return true; }
+  return false;
+};
+var WIRECOL = ['#2F6FDE', '#1E9E6A', '#E0A100', '#8A4FD1', '#E8E8E8', '#B5651D', '#E8772E', '#14A3B8'];
+B.autoColor = function (a, b) {
+  var na = nodeOf(a), nb = nodeOf(b), n = [na, nb];
+  if (n.indexOf('GND') >= 0 || n.indexOf('T-') >= 0 || n.indexOf('B-') >= 0) return '#202428';
+  if (n.indexOf('5V') >= 0) return '#E8772E';
+  if (n.indexOf('3V3') >= 0 || n.indexOf('T+') >= 0 || n.indexOf('B+') >= 0) return '#D6342C';
+  return WIRECOL[(this.seq++) % WIRECOL.length];
+};
+B.addWire = function (a, b, color, auto) {
+  if (!parseRef(a) || !parseRef(b)) { this.lastError = 'A wire needs two valid ends.'; return null; }
+  if (a === b) { this.lastError = 'A wire cannot start and end in the same hole.'; return null; }
+  if (this.occupied(a)) { this.lastError = 'That hole is already in use.'; return null; }
+  if (this.occupied(b)) { this.lastError = 'That hole is already in use.'; return null; }
+  if (nodeOf(a) === nodeOf(b)) { this.lastError = 'Both ends are already joined (same column strip or rail).'; return null; }
+  var w = { id: this.seq++, a: a, b: b, color: color || this.autoColor(a, b), auto: !!auto }; this.wires.push(w); this.lastError = ''; return w;
+};
+B.moveWireEnd = function (id, end, ref) {
+  var w = this.wireById(id); if (!w || !parseRef(ref)) return false;
+  var o = end === 'a' ? w.b : w.a;
+  if (ref === o || this.occupied(ref, w) || nodeOf(ref) === nodeOf(o)) { this.lastError = 'That end cannot go there.'; return false; }
+  w[end] = ref; w.auto = false; this.lastError = ''; return true;
+};
+B.removeWire = function (id) { var n = this.wires.length; this.wires = this.wires.filter(function (w) { return w.id !== id; }); return this.wires.length < n; };
+B.clear = function () { this.parts = []; this.wires = []; this.applied = {}; };
+
+/* ---------- nets ---------- */
+B.nets = function () {
+  var par = {};
+  function find(x) { if (par[x] === undefined) par[x] = x; while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; }
+  this.wires.forEach(function (w) { var a = find(nodeOf(w.a)), b = find(nodeOf(w.b)); if (a !== b) par[a] = b; });
+  var info = {};
+  function add(node) {
+    var root = find(node), it = info[root] || (info[root] = { sup: [], mcu: [] });
+    if (node === 'GND' || node === '3V3' || node === '5V') { if (it.sup.indexOf(node) < 0) it.sup.push(node); }
+    else if (node.slice(0, 2) === 'm:') { var pin = node.slice(2); if (it.mcu.indexOf(pin) < 0) it.mcu.push(pin); }
+  }
+  ['GND', '3V3', '5V'].forEach(add);
+  this.wires.forEach(function (w) { add(nodeOf(w.a)); add(nodeOf(w.b)); });
+  return { of: function (node) { var it = info[find(node)]; return it || { sup: [], mcu: [] }; }, find: find, info: info };
+};
+
+/* ---------- check the circuit and write it into the simulator ---------- */
+B.derive = function (S, force) {
+  var net = this.nets(), self = this, msgs = [], report = { parts: {}, msgs: msgs, shorts: [], contention: [] }, seenShort = {};
+  Object.keys(net.info).forEach(function (r) {
+    var it = net.info[r];
+    if (it.sup.length > 1) { var t = it.sup.join(' and '); if (!seenShort[t]) { seenShort[t] = 1; report.shorts.push(t); msgs.push('Short circuit: ' + it.sup.map(function (s) { return SUPNAME[s]; }).join(' and ') + ' are joined by your wiring. Remove the wire that connects them.'); } }
+    if (it.mcu.length > 1) { report.contention.push(it.mcu.slice()); msgs.push('Header pins ' + it.mcu.map(function (p) { return 'P' + p; }).join(' and ') + ' are wired together. If both are outputs they fight each other.'); }
+  });
+  ORDER.forEach(function (type) {
+    var d = DEFS[type], part = self.partOf(type), res = { type: type, placed: !!part, on: false, msgs: [], pins: [] };
+    report.parts[type] = res;
+    if (!part) { self._apply(S, type, null, { on: false, pin: function () { return ''; }, sup: function () { return ''; } }, force); return; }
+    var pinNet = {};
+    d.pins.forEach(function (p, k) { pinNet[p.n] = net.of(nodeOf(self.pinRef(part, k))); });
+    function pin(n) { var it = pinNet[n]; return it && it.mcu.length ? it.mcu[0] : ''; }
+    function sup(n) { var it = pinNet[n]; return it && it.sup.length === 1 ? it.sup[0] : ''; }
+    var block = [];
+    d.pins.forEach(function (p) {
+      var it = pinNet[p.n], s = it.sup, to;
+      if (s.length) to = s.map(function (x) { return SUPNAME[x]; }).join(' + ');
+      else if (it.mcu.length) to = it.mcu.map(function (x) { return 'P' + x; }).join(', ');
+      else to = '';
+      res.pins.push({ n: p.n, r: p.r, to: to });
+      if (p.r === 'vcc') {
+        if (s.length > 1) block.push('VCC touches both ' + s.join(' and ') + '.');
+        else if (!s.length) block.push('VCC is not connected to power. Wire it to ' + d.vcc.map(volts).join(' or ') + '.');
+        else if (s[0] === 'GND') block.push('VCC is wired to GND.');
+        else if (d.vcc.indexOf(s[0]) < 0) block.push('VCC is on ' + volts(s[0]) + ' but this part needs ' + d.vcc.map(volts).join(' or ') + '.');
+      } else if (p.r === 'gnd') {
+        if (!s.length) block.push('GND is not connected. Wire it to a GND pin.');
+        else if (s.length > 1 || s[0] !== 'GND') block.push('GND is wired to ' + s.map(volts).join(' and ') + ', not to ground.');
+      } else if (p.r === 'com') {
+        if (!s.length) block.push('COM is not connected. ' + d.comHelp);
+        else if (s.length > 1) block.push('COM touches both ' + s.join(' and ') + '.');
+      }
+    });
+    if (d.bus) Object.keys(d.bus).forEach(function (n) {
+      var need = d.bus[n], it = pinNet[n];
+      if (it.mcu.indexOf(need) >= 0) return;
+      block.push(it.mcu.length ? n + ' goes to P' + it.mcu[0] + ', but ' + PINLABEL[need] + ' is P' + need + '.' : n + ' is not connected. Wire it to P' + need + ' (' + PINLABEL[need] + ').');
+    });
+    res.on = block.length === 0; res.msgs = block;
+    block.forEach(function (m) { msgs.push(d.label + ': ' + m); });
+    if (type === 'spi_eeprom' || type === 'spi_595') { if (!pin('CS')) res.hint = 'CS is not connected. Wire it to PA3 (hardware frame select) or any GPIO pin you use as chip select.'; }
+    self._apply(S, type, part, { on: res.on, pin: pin, sup: sup }, force);
+  });
+  this.last = report; return report;
+};
+B._apply = function (S, type, part, c, force) {
+  if (!S || !S.mods) return;
+  var cfg = { on: c.on };
+  var d = DEFS[type];
+  d.pins.forEach(function (p) { cfg[p.n] = p.r === 'sig' || p.r === 'bus' ? c.pin(p.n) : c.sup(p.n); });
+  var sig = JSON.stringify(cfg);
+  if (!force && this.applied[type] === sig) return;
+  this.applied[type] = sig;
+  if (part || S.partIsOn(type)) APPLY[type](S, c);
+  if (type === 'keypad') return;                       // setKeypadOn is part of APPLY
+  if (type === 'relay') return;                        // setRelay is part of APPLY
+  if (S.partIsOn(type) !== c.on) S.partOn(type, c.on);
+  if (type === 'dip' || type === 'btns') S.syncInputs();
+};
+// Called after the simulator's settings were replaced (import, reset of the parts model).
+B.reapply = function (S) { this.applied = {}; return this.derive(S, true); };
+
+/* ---------- placing parts for an example ---------- */
+B.freeSpan = function (type, half) {
+  var d = DEFS[type];
+  for (var c = 1; c + d.pins.length - 1 <= G.COLS; c++) if (!this.whyNot(type, c, half)) return c;
+  return 0;
+};
+B._hole = function (part, pinName, mode) {
+  var d = DEFS[part.type], k = d.pins.map(function (p) { return p.n; }).indexOf(pinName), col = part.col + k, list = G.FREE[part.half].slice();
+  if (mode === 'far') list.reverse();
+  for (var i = 0; i < list.length; i++) { var ref = G.holeRef(col, list[i]); if (!this.occupied(ref)) return ref; }
+  return null;
+};
+B._railHole = function (rail, nearX) {
+  var best = null, bd = 1e9;
+  for (var k = 0; k < G.RAILN; k++) { var ref = 'r:' + rail + ':' + k; if (this.occupied(ref)) continue; var d = Math.abs(G.railX(k) - nearX); if (d < bd) { bd = d; best = ref; } }
+  return best;
+};
+B._supplyPin = function (sup) { return sup === 'GND' ? 'm:GND.1' : 'm:' + sup + '.1'; };
+// Wire the rail to its supply pin once.
+B._feedRail = function (rail) {
+  var ref = { 'T+': 'm:3V3.0', 'T-': 'm:GND.0', 'B+': 'm:5V.0', 'B-': 'm:GND.2' }[rail];
+  for (var i = 0; i < this.wires.length; i++) { var w = this.wires[i]; if (nodeOf(w.a) === rail && w.b === ref || nodeOf(w.b) === rail && w.a === ref) return true; }
+  var free = this._railHole(rail, G.railX(0)); if (!free) return false;
+  return !!this.addWire(free, ref, undefined, true);
+};
+// Place a part and wire it the way the example programs expect (signal pins to their default header pins, power to rails).
+B.autoPlace = function (type, pinMap) {
+  var d = DEFS[type]; if (!d) return null;
+  if (this.partOf(type)) return this.partOf(type);
+  var half = null, col = 0, order = ['L', 'U'], i;
+  for (i = 0; i < order.length && !col; i++) { col = this.freeSpan(type, order[i]); if (col) half = order[i]; }
+  if (!col) return null;
+  var part = this.addPart(type, col, half, true); if (!part) return null;
+  this.autoWire(part, pinMap, false);
+  return part;
+};
+// Add the jumpers a part is missing: signal pins to the pins the example programs use (or pinMap), power to the nearest rail or supply pin.
+B.autoWire = function (part, pinMap, onlyMissing) {
+  var d = DEFS[part.type], map = pinMap || DEFPIN[part.type] || {}, self = this, net = this.nets(), n = 0;
+  d.pins.forEach(function (p, k) {
+    var near = G.X(part.col + k), hole, it = net.of(nodeOf(self.pinRef(part, k)));
+    if (p.r === 'sig' || p.r === 'bus') {
+      var want = map[p.n]; if (!want || (onlyMissing && it.mcu.length)) return;
+      hole = self._hole(part, p.n, 'near'); if (hole && self.addWire(hole, 'm:' + want, undefined, true)) n++;
+      return;
+    }
+    if (onlyMissing && it.sup.length) return;
+    var sup = p.r === 'vcc' ? (part.half === 'U' && d.vcc.indexOf('3V3') >= 0 ? '3V3' : part.half === 'L' && d.vcc.indexOf('5V') >= 0 ? '5V' : d.vcc[0]) : 'GND';
+    var rail = sup === 'GND' ? (part.half === 'U' ? 'T-' : 'B-') : sup === '3V3' && part.half === 'U' ? 'T+' : sup === '5V' && part.half === 'L' ? 'B+' : null;
+    hole = self._hole(part, p.n, 'far'); if (!hole) return;
+    if (rail && self._feedRail(rail)) { var rh = self._railHole(rail, near); if (rh && self.addWire(hole, rh, undefined, true)) n++; }
+    else { var sp = self._supplyPin(sup); if (sp && self.addWire(hole, sp, undefined, true)) n++; }
+  });
+  return n;
+};
+// Remove everything an earlier example placed automatically and was not touched since.
+B.dropAuto = function () {
+  var keep = {}, self = this;
+  this.parts = this.parts.filter(function (p) { return !p.auto; });
+  this.wires = this.wires.filter(function (w) { return !w.auto; });
+};
+
+/* ---------- save and load ---------- */
+B.export = function () {
+  return { v: 1, seq: this.seq, onboard: { leds: this.onboard.leds, sw: this.onboard.sw },
+    parts: this.parts.map(function (p) { return { id: p.id, t: p.type, c: p.col, h: p.half, a: p.auto ? 1 : 0 }; }),
+    wires: this.wires.map(function (w) { return { id: w.id, a: w.a, b: w.b, k: w.color, x: w.auto ? 1 : 0 }; }) };
+};
+B.import = function (o) {
+  this.parts = []; this.wires = []; this.applied = {};
+  if (!o || typeof o !== 'object') return false;
+  var self = this, max = 0;
+  if (o.onboard) { this.onboard.leds = o.onboard.leds !== false; this.onboard.sw = o.onboard.sw !== false; }
+  (Array.isArray(o.parts) ? o.parts : []).forEach(function (p) {
+    if (!p || !DEFS[p.t] || self.whyNot(p.t, p.c, p.h)) return;
+    var id = +p.id > 0 ? +p.id : ++max; self.parts.push({ id: id, type: p.t, col: p.c, half: p.h, auto: !!p.a }); max = Math.max(max, id);
+  });
+  (Array.isArray(o.wires) ? o.wires : []).forEach(function (w) {
+    if (!w || !parseRef(w.a) || !parseRef(w.b) || w.a === w.b || self.occupied(w.a) || self.occupied(w.b)) return;
+    var id = +w.id > 0 ? +w.id : ++max, col = typeof w.k === 'string' && /^#[0-9A-Fa-f]{6}$/.test(w.k) ? w.k : self.autoColor(w.a, w.b);
+    self.wires.push({ id: id, a: w.a, b: w.b, color: col, auto: !!w.x }); max = Math.max(max, id);
+  });
+  this.seq = Math.max(this.seq, +o.seq || 1, max + 1);
+  return true;
+};
+
+M.supplyName = function (s) { return SUPNAME[s] || s; };
+return M;
+})(typeof MSP !== 'undefined' ? MSP : require('./core.js'));
 /* C subset -> JavaScript generator code. Pass 1: tokens (macros, declarations, casts). Pass 2: acorn AST edits. */
 var CC = (function () {
 'use strict';
@@ -9813,13 +10372,13 @@ int main(void)
 }
 ` }
 ,
-{ id: 'keypad', needs: ['keypad'], title: 'Keypad scanner', note: 'Rows on PK0-PK3 (outputs), columns on PL0-PL3 (inputs with pull-ups). Click keys in Components.', code: String.raw`#include <stdint.h>
+{ id: 'keypad', needs: ['keypad'], title: 'Keypad scanner', note: 'Rows on PK0-PK3 (outputs), columns on PL0-PL3 (inputs with pull-ups). Click the keys on the keypad.', code: String.raw`#include <stdint.h>
 #include <stdbool.h>
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 #include "utils/uartstdio.h"
 
-// Wiring (see Components): rows R1-R4 = PK0-PK3, columns C1-C4 = PL0-PL3
+// Wiring (wired on the bench): rows R1-R4 = PK0-PK3, columns C1-C4 = PL0-PL3
 const char keymap[4][4] = {
     {'1', '2', '3', 'A'},
     {'4', '5', '6', 'B'},
@@ -9948,7 +10507,7 @@ int main(void)
 #include "driverlib/gpio.h"
 #include "utils/uartstdio.h"
 
-// Wiring (see Components): keypad rows PK0-PK3, columns PL0-PL3, relay IN = PM0 (active-low)
+// Wiring (wired on the bench): keypad rows PK0-PK3, columns PL0-PL3, relay IN = PM0 (active-low)
 #define PIN_LEN 4
 
 const char keymap[4][4] = {
@@ -10080,7 +10639,7 @@ int main(void)
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 
-// LED bar on PD0-PD7 (see Components). LED n lights when PDn is high.
+// LED bar on PD0-PD7 (wired on the bench). LED n lights when PDn is high.
 int main(void)
 {
     uint32_t sysClock = SysCtlClockFreqSet(
@@ -10235,7 +10794,7 @@ int main(void)
     }
 }
 ` },
-{ id: 'buzzer_melody', needs: ['buzzer'], title: 'Buzzer melody', note: 'Passive buzzer on PG0 (M0PWM4) plays a tune. Tick Sound in the Buzzer card to hear it at 1x speed.', code: String.raw`#include <stdint.h>
+{ id: 'buzzer_melody', needs: ['buzzer'], title: 'Buzzer melody', note: 'Passive buzzer on PG0 (M0PWM4) plays a tune. Double-click the buzzer and tick Sound to hear it at 1x speed.', code: String.raw`#include <stdint.h>
 #include <stdbool.h>
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
@@ -10594,7 +11153,7 @@ int main(void)
     while (1) { }
 }
 ` }
-,{ id: 'i2c_scan', needs: ['i2c_tmp','i2c_eeprom','i2c_lcd','i2c_oled'], title: 'I2C0: bus scanner', note: 'Reads one byte from every 7-bit address and prints the ones that acknowledge. PB2 is SCL and PB3 is SDA. Change a device address in its card and scan again.', code: String.raw`#include <stdint.h>
+,{ id: 'i2c_scan', needs: ['i2c_tmp','i2c_eeprom','i2c_lcd','i2c_oled'], title: 'I2C0: bus scanner', note: 'Reads one byte from every 7-bit address and prints the ones that acknowledge. PB2 is SCL and PB3 is SDA. Double-click a device, change its address, and scan again.', code: String.raw`#include <stdint.h>
 #include <stdbool.h>
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
@@ -10639,7 +11198,7 @@ int main(void)
     while (1) { }
 }
 ` },
-{ id: 'i2c_temp', needs: ['i2c_tmp'], title: 'I2C0: temperature sensor', note: 'Reads a TMP102 at 0x48 twice a second and prints degrees Celsius. Drag the temperature slider in the sensor card. D1 lights above 30 degrees.', code: String.raw`#include <stdint.h>
+{ id: 'i2c_temp', needs: ['i2c_tmp'], title: 'I2C0: temperature sensor', note: 'Reads a TMP102 at 0x48 twice a second and prints degrees Celsius. Double-click the sensor and drag its temperature slider. D1 lights above 30 degrees.', code: String.raw`#include <stdint.h>
 #include <stdbool.h>
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
@@ -11205,11 +11764,96 @@ int main(void)
 ` }
 ];
 if (typeof module !== 'undefined') module.exports = EXAMPLES;
+/* Floating windows over the bench: drag by the title, resize from the corner, close, maximize. Open state and size are remembered.
+   On a phone a window fills the screen instead. */
+var Win = (function () {
+'use strict';
+var desk, store, wins = {}, order = [], zTop = 20, saved = {}, btns = {};
+function phone() { try { return window.matchMedia('(max-width: 720px)').matches; } catch (e) { return false; } }
+function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
+function persist() {
+  var o = {};
+  Object.keys(wins).forEach(function (id) { var w = wins[id]; o[id] = { open: !w.el.hidden, x: w.x, y: w.y, w: w.w, h: w.h, max: !!w.max }; });
+  try { store.set('e401y.win', JSON.stringify(o)); } catch (e) {}
+}
+var pt = 0; function later() { clearTimeout(pt); pt = setTimeout(persist, 250); }
+function place(w) {
+  var s = w.el.style, dw = desk.clientWidth || 1000, dh = desk.clientHeight || 700;
+  if (w.max) { s.left = '0px'; s.top = '0px'; s.width = dw + 'px'; s.height = dh + 'px'; return; }
+  w.w = Math.max(280, Math.min(w.w, dw - 8)); w.h = Math.max(160, Math.min(w.h, dh - 8));
+  w.x = Math.max(-w.w + 90, Math.min(w.x, dw - 90)); w.y = Math.max(0, Math.min(w.y, dh - 40));
+  s.left = w.x + 'px'; s.top = w.y + 'px'; s.width = w.w + 'px'; s.height = w.h + 'px';
+}
+function focus(id) {
+  var w = wins[id]; if (!w) return;
+  w.el.style.zIndex = ++zTop;
+  Object.keys(wins).forEach(function (k) { wins[k].el.classList.toggle('front', k === id); });
+}
+function mark(id) { var b = btns[id]; if (b) b.setAttribute('aria-pressed', wins[id] && !wins[id].el.hidden ? 'true' : 'false'); }
+function open(id) {
+  var w = wins[id]; if (!w) return;
+  var was = w.el.hidden; w.el.hidden = false; place(w); focus(id); mark(id); later();
+  if (was) { try { document.dispatchEvent(new CustomEvent('winshow', { detail: id })); } catch (e) {} if (w.onopen) w.onopen(); }
+}
+function close(id) { var w = wins[id]; if (!w || w.el.hidden) return; w.el.hidden = true; mark(id); later(); if (w.onclose) w.onclose(); }
+function toggle(id) { var w = wins[id]; if (!w) return; if (w.el.hidden) open(id); else close(id); }
+function isOpen(id) { return !!wins[id] && !wins[id].el.hidden; }
+function create(id, title, content, o) {
+  o = o || {};
+  var sv = saved[id] || {}, n = Object.keys(wins).length;
+  var w = { id: id, x: sv.x !== undefined ? sv.x : (o.x !== undefined ? o.x : 24 + n * 26), y: sv.y !== undefined ? sv.y : (o.y !== undefined ? o.y : 16 + n * 22),
+    w: sv.w || o.w || 460, h: sv.h || o.h || 420, max: !!sv.max, onopen: o.onopen, onclose: o.onclose };
+  var e = el('div', 'win'); e.id = 'win-' + id; e.hidden = true; e.setAttribute('role', 'dialog'); e.setAttribute('aria-label', title);
+  var hd = el('div', 'wh'), tt = el('span', 'wt'); tt.textContent = title; hd.appendChild(tt);
+  var mx = el('button', 'wx wm'); mx.type = 'button'; mx.setAttribute('aria-label', 'Maximize ' + title); mx.title = 'Maximize'; mx.innerHTML = '&#9633;';
+  var cx = el('button', 'wx'); cx.type = 'button'; cx.setAttribute('aria-label', 'Close ' + title); cx.title = 'Close'; cx.innerHTML = '&times;';
+  hd.appendChild(mx); hd.appendChild(cx); e.appendChild(hd);
+  var body = el('div', 'wb'); if (o.cls) body.className += ' ' + o.cls; if (content) body.appendChild(content); e.appendChild(body);
+  desk.appendChild(e); w.el = e; w.body = body; w.title = tt; wins[id] = w; order.push(id);
+  cx.addEventListener('click', function () { close(id); });
+  mx.addEventListener('click', function () { w.max = !w.max; place(w); later(); });
+  e.addEventListener('pointerdown', function () { focus(id); }, true);
+  var drag = null;
+  hd.addEventListener('pointerdown', function (ev) {
+    if (ev.target.closest('button') || w.max || phone()) return;
+    drag = { sx: ev.clientX, sy: ev.clientY, x: w.x, y: w.y };
+    try { hd.setPointerCapture(ev.pointerId); } catch (x) {}
+    ev.preventDefault();
+  });
+  hd.addEventListener('pointermove', function (ev) { if (!drag) return; w.x = drag.x + ev.clientX - drag.sx; w.y = drag.y + ev.clientY - drag.sy; place(w); });
+  ['pointerup', 'pointercancel'].forEach(function (n) { hd.addEventListener(n, function () { if (drag) { drag = null; later(); } }); });
+  hd.addEventListener('dblclick', function (ev) { if (!ev.target.closest('button')) { w.max = !w.max; place(w); later(); } });
+  if (window.ResizeObserver) {
+    var first = true;
+    new ResizeObserver(function () {
+      if (first) { first = false; return; }
+      if (e.hidden || w.max || phone()) return;
+      var r = e.getBoundingClientRect(); if (r.width > 0) { w.w = Math.round(r.width); w.h = Math.round(r.height); later(); }
+    }).observe(e);
+  }
+  if (sv.open) open(id);
+  return w;
+}
+function bind(btn, id) { btns[id] = btn; btn.addEventListener('click', function () { toggle(id); }); mark(id); }
+function setTitle(id, t) { var w = wins[id]; if (w) { w.title.textContent = t; w.el.setAttribute('aria-label', t); } }
+function init(deskEl, st) {
+  desk = deskEl; store = st;
+  try { saved = JSON.parse(store.get('e401y.win') || '{}') || {}; } catch (e) { saved = {}; }
+  window.addEventListener('resize', function () { Object.keys(wins).forEach(function (k) { if (!wins[k].el.hidden) place(wins[k]); }); });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    if (ev.target && /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) && ev.target.id === 'code') return;
+    var top = null, z = -1; Object.keys(wins).forEach(function (k) { var w = wins[k]; if (!w.el.hidden && +w.el.style.zIndex > z && w.el.classList.contains('front')) { z = +w.el.style.zIndex; top = k; } });
+    if (top && document.activeElement && wins[top].el.contains(document.activeElement) && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) close(top);
+  });
+}
+return { init: init, create: create, open: open, close: close, toggle: toggle, isOpen: isOpen, focus: focus, bind: bind, setTitle: setTitle, get: function (id) { return wins[id]; } };
+})();
 /* Components panel: a checklist of on-board items and add-on parts, one card per part with wiring selects. */
 var PartsUI = (function () {
 'use strict';
 var $ = function (id) { return document.getElementById(id); };
-var S, store, cards = {}, picks = {}, binders = [], audio = null, soundOn = false;
+var S, store, cards = {}, picks = {}, binders = [], audio = null, soundOn = false, BENCH = false, hooks = {};
 
 var LIST = [
   { id: 'leds', label: 'User LEDs D1-D4', grp: 'On the LaunchPad' },
@@ -11262,11 +11906,14 @@ function pinSelect(id, label, get, set) {
   binders.push(function () { sel.value = get() || ''; });
   wrap.appendChild(sel); return wrap;
 }
+var DERIVED = { lbLow: 1, rgAnode: 1, sgAnode: 1, dpVcc: 1, pbVcc: 1 };      // set by how the part's COM pin is wired on the bench
 function check(id, label, get, set) {
   var l = h('label', 'chk'), i = h('input'); i.type = 'checkbox'; i.id = id;
   i.addEventListener('change', function () { set(i.checked); changed(); });
   binders.push(function () { i.checked = !!get(); });
-  l.appendChild(i); l.appendChild(document.createTextNode(' ' + label)); return l;
+  l.appendChild(i); l.appendChild(document.createTextNode(' ' + label));
+  if (BENCH && DERIVED[id]) { i.disabled = true; l.title = 'Set by how COM is wired'; l.appendChild(h('span', 'dim', ' (from the COM wire)')); }
+  return l;
 }
 function choose(id, label, opts, get, set) {
   var l = h('label', 'chk sel'); l.appendChild(document.createTextNode(label + ' '));
@@ -11638,12 +12285,13 @@ function buildOled() {
   var cv = h('canvas', 'oledc'); cv.width = 128; cv.height = 64; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'OLED screen');
   var st = h('p', 'note'); c.el.appendChild(cv); c.el.appendChild(st);
   c.el.appendChild(note('Control byte 0x00 introduces commands, 0x40 introduces display data (0x80 and 0xC0 send one byte at a time). The screen stays dark until the charge pump is on (0x8D, 0x14) and the display is switched on (0xAF). Page addressing mode is the default: set the page with 0xB0+n and the column with 0x00/0x10.'));
-  var img = null, lastRev = -1, lastOn = null;
+  var img = null, lastRev = -1, lastOn = null, lastDraw = 0;
   return { el: c.el, upd: function () {
     var s = S.busDevice('i2c_oled').st;
     var key = s.rev + ':' + s.on + ':' + s.pump;
-    if (key !== lastRev) {
-      lastRev = key;
+    var nowMs = performance.now();
+    if (key !== lastRev && nowMs - lastDraw >= 50) {       // at most about 20 redraws a second
+      lastRev = key; lastDraw = nowMs;
       var g = cv.getContext('2d'); if (!g) return;
       var lit = s.on && s.pump;
       g.fillStyle = '#05070A'; g.fillRect(0, 0, 128, 64);
@@ -11700,11 +12348,13 @@ function build595() {
 }
 
 /* ---------- bus decoder ---------- */
-var busSeen = -1;
+var busSeen = -1, busLast = 0;
 function busFrame() {
   var pn = $('busPanel'); if (!pn) return;
+  if (window.Win && !Win.isOpen('bus')) return;               // nothing to draw while the window is closed
+  var nowMs = performance.now(); if (nowMs - busLast < 200) return; busLast = nowMs;
   var show = S.busLog.length > 0 || S.anyBus('i2c') || S.anyBus('spi') || S.i2c.en || S.ssi.en;
-  pn.hidden = !show; if (!show) return;
+  if (!show) return;
   if (S.busRev === busSeen) return;
   busSeen = S.busRev;
   var box = $('busLog'), atEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 8, html = '';
@@ -11719,7 +12369,7 @@ function busFrame() {
 var BUILD = { i2c_tmp: buildTmp, i2c_eeprom: buildI2cEeprom, i2c_lcd: buildLcd, i2c_oled: buildOled, spi_eeprom: buildSpiEeprom, spi_595: build595, keypad: buildKeypad, relay: buildRelay, ledbar: buildLedbar, rgb: buildRgb, seg: buildSeg, buzzer: buildBuzzer, motor: buildMotor, servo: buildServo, stepper: buildStepper, dip: buildDip, btns: buildBtns };
 
 /* ---------- checks, validation, persistence ---------- */
-function validate() {
+function compute() {
   var list = S.partsPins(), seen = {}, msgs = [], unwired = {}, gens = {};
   var res = {}, k;
   for (k in RESERVED_ALWAYS) res[k] = RESERVED_ALWAYS[k];
@@ -11734,27 +12384,35 @@ function validate() {
   msgs = msgs.concat(MSP.busChecks(S));
   var un = Object.keys(unwired); if (un.length) msgs.push('Some pins are not wired on: ' + un.join(', ') + '.');
   Object.keys(gens).forEach(function (g) { var m = Object.keys(gens[g]); if (m.length > 1) msgs.push(m.join(' and ') + ' use outputs of the same PWM generator, so they share one period.'); });
-  var w = $('partsWarn'); w.className = msgs.length ? 'warnline on' : 'warnline';
-  w.textContent = msgs.slice(0, 4).join(' ');
+  return msgs;
 }
-function save() { try { store.set('e401y.wiring2', JSON.stringify(S.partsExport())); } catch (e) {} }
+function validate() {
+  var msgs = compute(), w = $('partsWarn'); if (!w) return msgs;
+  w.className = msgs.length ? 'warnline on' : 'warnline';
+  w.textContent = msgs.slice(0, 4).join(' ');
+  return msgs;
+}
+function save() { if (BENCH) return; try { store.set('e401y.wiring2', JSON.stringify(S.partsExport())); } catch (e) {} }
 function refresh() {
   binders.forEach(function (f) { f(); });
   LIST.forEach(function (x) {
     var on = S.partIsOn(x.id);
     if (picks[x.id]) picks[x.id].checked = on;
-    if (cards[x.id]) cards[x.id].el.hidden = !on;
+    if (cards[x.id]) cards[x.id].el.hidden = BENCH ? false : !on;
   });
   $('sw1').disabled = !S.onboard.sw; $('sw2').disabled = !S.onboard.sw;
   $('boardNote').textContent = S.onboard.leds ? 'D1 PN1 / D2 PN0 / D3 PF4 / D4 PF0' : 'User LEDs disconnected';
+  if (ob.leds) ob.leds.checked = S.onboard.leds;
+  if (ob.sw) ob.sw.checked = S.onboard.sw;
 }
-function apply() { refresh(); validate(); save(); }
+var ob = {};
+function apply() { refresh(); validate(); save(); if (hooks.change) hooks.change(); }
 
-function init(sim, st) {
-  S = sim; store = st; S.defaultParts();
+function init(sim, st, opts) {
+  S = sim; store = st; S.defaultParts(); opts = opts || {}; BENCH = !!opts.bench; hooks = opts;
   var saved = null;
-  try { saved = JSON.parse(store.get('e401y.wiring2') || 'null'); } catch (e) { saved = null; }
-  if (!saved) {
+  try { saved = BENCH ? null : JSON.parse(store.get('e401y.wiring2') || 'null'); } catch (e) { saved = null; }
+  if (!saved && !BENCH) {
     try {
       var o = JSON.parse(store.get('e401y.wiring') || 'null');
       if (o && o.rows && o.cols) saved = { keypad: { on: o.kpOn !== false, rows: o.rows, cols: o.cols, bounce: !!o.bounce }, relay: { on: o.rlOn !== false, pin: o.pin, low: o.low !== false } };
@@ -11763,16 +12421,26 @@ function init(sim, st) {
   if (saved) S.partsImport(saved);
   var box = $('partChecks'), cardBox = $('partCards');
   LIST.forEach(function (x) {
-    if (x.grp) box.appendChild(h('div', 'pickgrp', x.grp));
-    var l = h('label', 'pick'), i = h('input'); i.type = 'checkbox'; i.id = 'pick-' + x.id;
-    i.addEventListener('change', function () { S.partOn(x.id, i.checked); apply(); });
-    l.appendChild(i); l.appendChild(document.createTextNode(x.label)); box.appendChild(l); picks[x.id] = i;
-    if (BUILD[x.id]) { var cd = BUILD[x.id](); cd.el.hidden = true; cardBox.appendChild(cd.el); cards[x.id] = cd; }
+    if (box && !BENCH) {
+      if (x.grp) box.appendChild(h('div', 'pickgrp', x.grp));
+      var l = h('label', 'pick'), i = h('input'); i.type = 'checkbox'; i.id = 'pick-' + x.id;
+      i.addEventListener('change', function () { S.partOn(x.id, i.checked); apply(); });
+      l.appendChild(i); l.appendChild(document.createTextNode(x.label)); box.appendChild(l); picks[x.id] = i;
+    }
+    if (BUILD[x.id]) { var cd = BUILD[x.id](); cd.el.hidden = !BENCH; cardBox.appendChild(cd.el); cards[x.id] = cd; }
   });
   var pu = $('busPull'); if (pu) { pu.addEventListener('change', function () { S.mods.buses.pullups = pu.checked; apply(); }); binders.push(function () { pu.checked = !!S.mods.buses.pullups; }); }
   var bc = $('busClear'); if (bc) bc.addEventListener('click', function () { S.busLog = []; S.busRev++; });
-  $('wiringReset').addEventListener('click', function () { S.partsImport(DEFAULT_CFG); apply(); });
-  apply();
+  var wr = $('wiringReset'); if (wr) wr.addEventListener('click', function () { S.partsImport(DEFAULT_CFG); apply(); });
+  if (!BENCH) apply();
+}
+// Tick boxes for the two on-board items that a LaunchPad jumper can disconnect.
+function onboardChecks(box) {
+  [['leds', 'User LEDs D1-D4 connected'], ['sw', 'User switches SW1, SW2 connected']].forEach(function (x) {
+    var l = h('label', 'chk'), i = h('input'); i.type = 'checkbox'; i.id = 'ob-' + x[0]; i.checked = S.onboard[x[0]];
+    i.addEventListener('change', function () { S.partOn(x[0], i.checked); apply(); });
+    l.appendChild(i); l.appendChild(document.createTextNode(' ' + x[1])); box.appendChild(l); ob[x[0]] = i;
+  });
 }
 function need(ids) {
   var any = false;
@@ -11787,7 +12455,725 @@ function frame(active) {
   if (!S.partIsOn('buzzer')) muteAudio();
   busFrame();
 }
-return { init: init, frame: frame, need: need, labels: labels };
+return { init: init, frame: frame, need: need, labels: labels, apply: apply, refresh: refresh, compute: compute, card: function (id) { return cards[id]; }, LIST: LIST, LABEL: LABEL, onboardChecks: onboardChecks };
+})();
+/* The bench screen: a big breadboard, the LaunchPad above it, a parts palette on the left, drag and drop, jumper wires.
+   Everything electrical lives in bench.js; this file draws it and turns pointer input into bench edits. */
+var BenchUI = (function () {
+'use strict';
+var NS = 'http://www.w3.org/2000/svg', G = MSP.BENCH, DEFS = MSP.PARTDEFS, ORDER = MSP.PARTORDER;
+var $ = function (id) { return document.getElementById(id); };
+var S, store, bench, svg, world, gBoard, gParts, gMcu, gWires, gOver, report = null, hooks = {};
+var view = { x: 0, y: 0, k: 1 }, partObjs = {}, wireObjs = {}, sel = null, armed = null, pending = null, drag = null, ring = null, prev = null, wprev = null, pendMark = null;
+var mcuLeds = [], mcuSw = [], pinEls = {}, txOn = null, inspInfo = {}, palItems = {}, pointers = {}, pinch = null, toastT = 0, saveT = 0, lastPin = 0, uidc = 0;
+var LEG = { U: 82, L: 86 };
+var GRPCOL = { Input: '#4A78B5', Output: '#2F9A6F', 'I2C0 devices': '#8458C4', 'SSI0 devices': '#C47A2C' };
+var PINFN = { A0: 'UART0 RX (USB serial)', A1: 'UART0 TX (USB serial)', A2: 'SSI0 CLK', A3: 'SSI0 FSS', A4: 'SSI0 MOSI', A5: 'SSI0 MISO', B2: 'I2C0 SCL', B3: 'I2C0 SDA',
+  E0: 'AIN3', E1: 'AIN2', E2: 'AIN1', E3: 'AIN0', F0: 'M0PWM0, LED D4', F1: 'M0PWM1', F2: 'M0PWM2', F3: 'M0PWM3', F4: 'LED D3', G0: 'M0PWM4', G1: 'M0PWM5',
+  K4: 'M0PWM6', K5: 'M0PWM7', J0: 'switch SW1', J1: 'switch SW2', N0: 'LED D2', N1: 'LED D1' };
+var BUSPIN = { A2: 1, A3: 1, A4: 1, A5: 1, B2: 1, B3: 1 };
+
+function se(name, attrs, parent, text) {
+  var e = document.createElementNS(NS, name);
+  if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function he(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
+function cls(el, v) { if (el.__c !== v) { el.__c = v; el.setAttribute('class', v); } }
+function at(el, k, v) { var c = el.__a || (el.__a = {}); if (c[k] !== v) { c[k] = v; el.setAttribute(k, v); } }
+function tx(el, v) { if (el.__t !== v) { el.__t = v; el.textContent = v; } }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function pinName(ref) { var r = G.parseRef(ref); if (!r) return ref; if (r.k === 'm') return r.sup ? r.sup : 'P' + r.pin; if (r.k === 'r') return 'rail ' + r.rail; return 'column ' + r.col + ' row ' + r.row; }
+
+/* ---------- the board, the LaunchPad ---------- */
+function buildBoard() {
+  var BX = G.BX, BY = G.BY, BW = G.BW, BH = G.BH, d = '', c, i, k;
+  se('rect', { class: 'bb-body', x: BX, y: BY, width: BW, height: BH, rx: 10 }, gBoard);
+  se('rect', { class: 'bb-trench', x: BX + 12, y: BY + 168, width: BW - 24, height: 16, rx: 3 }, gBoard);
+  [['T+', -10, 'bb-plus'], ['T-', 10, 'bb-minus'], ['B+', -10, 'bb-plus'], ['B-', 10, 'bb-minus']].forEach(function (r) {
+    var y = G.railY(r[0]) + r[1]; se('line', { class: r[2], x1: BX + 18, x2: BX + BW - 18, y1: y, y2: y }, gBoard);
+    var s = r[0].charAt(1) === '+' ? '+' : '−';
+    se('text', { class: 'bb-sign ' + r[2], x: BX + 10, y: G.railY(r[0]) + 4, 'text-anchor': 'middle' }, gBoard, s);
+    se('text', { class: 'bb-sign ' + r[2], x: BX + BW - 10, y: G.railY(r[0]) + 4, 'text-anchor': 'middle' }, gBoard, s);
+  });
+  for (c = 1; c <= G.COLS; c++) {
+    for (i = 0; i < 10; i++) d += 'M' + (G.X(c) - 3) + ' ' + (G.rowY(G.ROWS[i]) - 3) + 'h6v6h-6z';
+    if (c === 1 || c % 5 === 0) {
+      se('text', { class: 'bb-num', x: G.X(c), y: BY + 56, 'text-anchor': 'middle' }, gBoard, c);
+      se('text', { class: 'bb-num', x: G.X(c), y: BY + 300, 'text-anchor': 'middle' }, gBoard, c);
+    }
+  }
+  G.RAILS.forEach(function (r) { for (k = 0; k < G.RAILN; k++) d += 'M' + (G.railX(k) - 3) + ' ' + (G.railY(r) - 3) + 'h6v6h-6z'; });
+  se('path', { class: 'bb-hole', d: d }, gBoard);
+  G.ROWS.forEach(function (r) {
+    se('text', { class: 'bb-num', x: BX + 40, y: G.rowY(r) + 3, 'text-anchor': 'middle' }, gBoard, r);
+    se('text', { class: 'bb-num', x: BX + BW - 40, y: G.rowY(r) + 3, 'text-anchor': 'middle' }, gBoard, r);
+  });
+  se('text', { class: 'bb-note', x: BX + BW / 2, y: BY + 176 + 4, 'text-anchor': 'middle' }, gBoard, 'Each column of five holes is joined inside the board. The two halves are not joined. Each power rail runs the whole length.');
+}
+function holdSvg(el, press, release, minMs) {
+  var down = false, t0 = 0;
+  function dn(e) { e.stopPropagation(); e.preventDefault(); if (down) return; down = true; t0 = performance.now(); try { el.setPointerCapture(e.pointerId); } catch (x) {} press(); }
+  function up() { if (!down) return; setTimeout(function () { down = false; release(); }, Math.max(0, minMs - (performance.now() - t0))); }
+  el.addEventListener('pointerdown', dn);
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (n) { el.addEventListener(n, up); });
+}
+function buildMcu() {
+  var g = se('g', { class: 'mcu' }, gMcu), H = G.MCU_H, i;
+  se('rect', { class: 'pcb', x: 30, y: 0, width: 1280, height: H, rx: 12, 'data-role': 'mcu' }, g);
+  se('rect', { class: 'metal', x: 330, y: 0, width: 100, height: 26, rx: 3, 'data-role': 'mcu' }, g);
+  se('text', { class: 'silk dark', x: 380, y: 17, 'text-anchor': 'middle', 'data-role': 'mcu' }, g, 'USB');
+  se('text', { class: 'silk big', x: 54, y: 28, 'data-role': 'mcu' }, g, 'MSP-EXP432E401Y');
+  se('text', { class: 'silk s', x: 54, y: 42, 'data-role': 'mcu' }, g, 'SimpleLink Ethernet MSP432E401Y LaunchPad');
+  var ob = se('g', { class: 'mcu-open', 'data-role': 'open', tabindex: '0', role: 'button', 'aria-label': 'Open the program editor and debugger' }, g);
+  se('rect', { x: 54, y: 52, width: 150, height: 26, rx: 6 }, ob); se('text', { x: 129, y: 69, 'text-anchor': 'middle' }, ob, 'Open program ▸');
+  se('text', { class: 'silk s', x: 54, y: 96, 'data-role': 'mcu' }, g, 'Double-click the board to open the editor and debugger.');
+  se('rect', { class: 'ic', x: 560, y: 40, width: 150, height: 52, rx: 4, 'data-role': 'mcu' }, g);
+  se('text', { class: 'icx', x: 635, y: 62, 'text-anchor': 'middle', 'data-role': 'mcu' }, g, 'MSP432E401Y');
+  se('text', { class: 'icx s', x: 635, y: 78, 'text-anchor': 'middle', 'data-role': 'mcu' }, g, 'Cortex-M4F 120 MHz');
+  se('circle', { class: 'led-off', cx: 232, cy: 65, r: 4 }, g); txOn = se('circle', { class: 'led-on', cx: 232, cy: 65, r: 3.2, opacity: 0 }, g);
+  se('text', { class: 'silk s', x: 242, y: 68, 'data-role': 'mcu' }, g, 'UART');
+  [['D1', 'N', 1], ['D2', 'N', 0], ['D3', 'F', 4], ['D4', 'F', 0]].forEach(function (d, k) {
+    var lg = se('g', { transform: 'translate(' + (800 + k * 46) + ' 62)', 'data-role': 'mcu' }, g);
+    var halo = se('circle', { r: 15, class: 'led-on', filter: 'url(#bGlow)', opacity: 0 }, lg);
+    se('circle', { r: 8.5, class: 'led-off' }, lg); var core = se('circle', { r: 6.5, class: 'led-on', opacity: 0 }, lg);
+    se('text', { class: 'silk', y: 22, 'text-anchor': 'middle' }, lg, d[0]);
+    mcuLeds.push({ L: d[1], b: d[2], halo: halo, core: core });
+  });
+  [['SW1', 'J', 0, 1010], ['SW2', 'J', 1, 1060]].forEach(function (d) {
+    var sg = se('g', { transform: 'translate(' + d[3] + ' 62)', class: 'mcu-sw', 'data-role': 'ctl', tabindex: '0', role: 'button', 'aria-label': 'User switch ' + d[0] + ', hold to press' }, g);
+    se('rect', { x: -13, y: -13, width: 26, height: 26, rx: 3, class: 'swbase' }, sg); var cap = se('circle', { r: 8.5, class: 'cap' }, sg);
+    se('text', { class: 'silk', y: 26, 'text-anchor': 'middle' }, sg, d[0]);
+    var press = function () { if (S.onboard.sw) S.setInput(d[1], d[2], 0); }, rel = function () { S.setInput(d[1], d[2], null); };
+    holdSvg(sg, press, rel, 0);
+    sg.addEventListener('keydown', function (e) { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); press(); } });
+    sg.addEventListener('keyup', function (e) { if (e.key === ' ' || e.key === 'Enter') rel(); });
+    mcuSw.push({ L: d[1], b: d[2], cap: cap });
+  });
+  var i0 = G.GROUPS;
+  [i0.out, i0.inn].forEach(function (row, ri) {
+    row.forEach(function (L, pi) {
+      var a = G.mcuXY('m:' + L + 0), b = G.mcuXY('m:' + L + 7);
+      se('rect', { class: 'pgrp' + (pi % 2 ? ' alt' : ''), x: a.x - 10, y: a.y - 20, width: b.x - a.x + 20, height: 32, rx: 6 }, g);
+      for (i = 0; i < 8; i++) {
+        var ref = 'm:' + L + i, p = G.mcuXY(ref), fn = PINFN[L + i];
+        var pad = se('circle', { class: 'mpad' + (BUSPIN[L + i] ? ' bus' : ''), cx: p.x, cy: p.y, r: 4.6 }, g);
+        se('title', null, pad, 'P' + L + i + (fn ? ' • ' + fn : ''));
+        se('text', { class: 'mplab', x: p.x, y: p.y - 8, 'text-anchor': 'middle' }, g, L + i);
+        pinEls[L + i] = pad;
+      }
+    });
+  });
+  G.GROUPS.supply.forEach(function (s, k) {
+    var ref = 'm:' + s[0] + '.' + s[1], p = G.mcuXY(ref);
+    var pad = se('circle', { class: 'mpad sup ' + (s[0] === 'GND' ? 'gnd' : s[0] === '5V' ? 'v5' : 'v33'), cx: p.x, cy: p.y, r: 4.6 }, g);
+    se('title', null, pad, s[0] === 'GND' ? 'GND' : s[0] === '5V' ? '5 V' : '3.3 V');
+    se('text', { class: 'mplab sup', x: p.x, y: p.y - 8, 'text-anchor': 'middle' }, g, s[0]);
+  });
+}
+function updatePins() {
+  var L, b, p, st, m, alt, c;
+  G.GROUPS.out.concat(G.GROUPS.inn).forEach(function (L) {
+    p = S.gpio[L];
+    for (b = 0; b < 8; b++) {
+      m = 1 << b; alt = p.alt[b];
+      if (alt && alt.indexOf('pwm') === 0) c = 'mpad pwm' + (p.lv[b] > 0 ? ' hi' : '');
+      else if (alt) c = 'mpad alt';
+      else if (p.analog & m) c = 'mpad alt';
+      else if ((p.dir & m) && (p.den & m)) c = 'mpad out' + (p.dig[b] ? ' hi' : '');
+      else if (p.den & m) c = 'mpad in' + (p.dig[b] ? ' hi' : '');
+      else c = 'mpad';
+      if (BUSPIN[L + b]) c += ' bus';
+      cls(pinEls[L + b], c);
+    }
+  });
+}
+
+/* ---------- parts on the board ---------- */
+var DYN = ['opacity', 'fill', 'width', 'transform', 'x2', 'y2'];
+// A live copy of a part card's drawing: the card keeps animating, the copy follows it.
+function mirror(cardEl, parent, x, y, w, h) {
+  var src = cardEl && cardEl.querySelector('svg.partsvg'); if (!src) return null;
+  var vb = src.getAttribute('viewBox') || '0 0 100 100', n = se('svg', { x: x, y: y, width: w, height: h, viewBox: vb, preserveAspectRatio: 'xMidYMid meet' }, parent);
+  var wrap = se('g', { class: 'partsvg' + (src.id === 'relaySvg' ? ' relaysvg' : '') }, n), uid = ++uidc, used = {};
+  var html = src.innerHTML.replace(/url\(#([\w-]+)\)/g, function (m, i) { used[i] = 1; return m; });
+  html = html.replace(/\sid="([\w-]+)"/g, function (m, i) { return used[i] ? ' id="' + i + '_b' + uid + '"' : ''; }).replace(/url\(#([\w-]+)\)/g, 'url(#$1_b' + uid + ')');
+  wrap.innerHTML = html;
+  var pairs = [];
+  Array.prototype.forEach.call(src.querySelectorAll('[data-k]'), function (s) {
+    var d = wrap.querySelector('[data-k="' + s.getAttribute('data-k') + '"]'); if (!d) return;
+    var init = {}; DYN.forEach(function (a) { init[a] = d.getAttribute(a); }); pairs.push({ s: s, d: d, init: init });
+  });
+  return { upd: function (on) {
+    pairs.forEach(function (p) {
+      DYN.forEach(function (a) { var v = on ? p.s.getAttribute(a) : p.init[a]; if (v !== null && p.d.getAttribute(a) !== v) p.d.setAttribute(a, v); });
+    });
+  } };
+}
+var KEYS = ['1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9', 'C', '*', '0', '#', 'D'];
+function chip(g, w, h, label) {
+  se('rect', { class: 'chipbody', x: w / 2 - 36, y: h / 2 - 14, width: 72, height: 28, rx: 3 }, g);
+  se('circle', { class: 'chipdot', cx: w / 2 - 28, cy: h / 2 - 6, r: 2.2 }, g);
+  se('text', { class: 'chiptxt', x: w / 2, y: h / 2 + 4, 'text-anchor': 'middle' }, g, label);
+}
+var FACES = {
+  keypad: function (g, w, h) {
+    var cw = w / 4, ch = h / 4, ks = [];
+    KEYS.forEach(function (k, i) {
+      var r = i >> 2, c = i & 3, kg = se('g', { class: 'bkey', 'data-role': 'ctl', transform: 'translate(' + c * cw + ' ' + r * ch + ')' }, g);
+      se('rect', { x: 1.5, y: 1.5, width: cw - 3, height: ch - 3, rx: 3 }, kg); se('text', { x: cw / 2, y: ch / 2 + 4, 'text-anchor': 'middle' }, kg, k);
+      holdSvg(kg, function () { S.keySet(r, c, 1); }, function () { S.keySet(r, c, 0); }, 120); ks.push(kg);
+    });
+    return { upd: function () { var dn = S.keypad.down; ks.forEach(function (kg, i) { cls(kg, 'bkey' + (dn[i >> 2][i & 3] ? ' down' : '')); }); } };
+  },
+  btns: function (g, w, h) {
+    var bs = [];
+    for (var i = 0; i < 4; i++) (function (i) {
+      var bg = se('g', { class: 'bbtn', 'data-role': 'ctl', transform: 'translate(' + (w / 8 + i * w / 4) + ' ' + h / 2 + ')' }, g);
+      se('circle', { r: Math.min(12, h / 2 - 2) }, bg); se('text', { y: 3.5, 'text-anchor': 'middle' }, bg, 'B' + (i + 1));
+      holdSvg(bg, function () { S.btnSet(i, 1); }, function () { S.btnSet(i, 0); }, 60); bs.push(bg);
+    })(i);
+    return { upd: function () { var dn = S.mods.btns.down; bs.forEach(function (b, i) { cls(b, 'bbtn' + (dn[i] ? ' down' : '')); }); } };
+  },
+  dip: function (g, w, h) {
+    var ks = [], tw = 20, th = Math.min(46, h - 4);
+    for (var i = 0; i < 4; i++) (function (i) {
+      var x = w / 8 + i * w / 4 - tw / 2, tg = se('g', { class: 'bdip', 'data-role': 'ctl', transform: 'translate(' + x + ' ' + (h - th) / 2 + ')', role: 'switch' }, g);
+      se('rect', { width: tw, height: th, rx: 3 }, tg); var kn = se('rect', { class: 'knob', x: 2, y: 2, width: tw - 4, height: th / 2 - 2, rx: 2 }, tg);
+      tg.addEventListener('pointerdown', function (e) { e.stopPropagation(); e.preventDefault(); S.dipSet(i, !S.mods.dip.state[i]); });
+      ks.push({ g: tg, k: kn, th: th });
+    })(i);
+    return { upd: function () { var st = S.mods.dip.state; ks.forEach(function (o, i) { at(o.k, 'y', st[i] ? o.th / 2 : 2); at(o.g, 'aria-checked', st[i] ? 'true' : 'false'); }); } };
+  },
+  i2c_tmp: function (g, w, h) {
+    chip(g, w, h, 'TMP102'); var t = se('text', { class: 'bigtxt', x: w / 2, y: h - 4, 'text-anchor': 'middle' }, g, '');
+    return { upd: function (on) { tx(t, on ? S.mods.i2c_tmp.temp.toFixed(1) + ' °C' : ''); } };
+  },
+  i2c_eeprom: function (g, w, h) {
+    chip(g, w, h, '24C02'); var t = se('text', { class: 'bigtxt s', x: w / 2, y: h - 4, 'text-anchor': 'middle' }, g, '');
+    return { upd: function (on) { tx(t, on ? S.busDevice('i2c_eeprom').st.writes + ' writes' : ''); } };
+  },
+  spi_eeprom: function (g, w, h) {
+    chip(g, w, h, '25LC256'); var t = se('text', { class: 'bigtxt s', x: w / 2, y: h - 4, 'text-anchor': 'middle' }, g, '');
+    return { upd: function (on) { tx(t, on ? S.busDevice('spi_eeprom').st.writes + ' writes' : ''); } };
+  },
+  i2c_lcd: function (g, w, h, card) {
+    var bg = se('rect', { class: 'lcdbg', width: w, height: h, rx: 4 }, g), ls = [], cells = card ? card.el.querySelectorAll('.lcdc') : [], disp = card ? card.el.querySelector('.lcd') : null;
+    for (var r = 0; r < 2; r++) ls.push(se('text', { class: 'lcdtxt', x: 6, y: h / 2 - 6 + r * 24 + 2, textLength: w - 12, lengthAdjust: 'spacing' }, g, ''));
+    return { upd: function (on) {
+      var dc = disp ? disp.className : '', lit = /\bon\b/.test(dc), bl = /\bbl\b/.test(dc);
+      cls(bg, 'lcdbg' + (on && lit ? (bl ? ' bl' : ' on') : ''));
+      for (var r = 0; r < 2; r++) { var s = ''; for (var k = 0; k < 16; k++) s += on && cells[r * 16 + k] ? (cells[r * 16 + k].textContent || ' ') : ' '; tx(ls[r], s.replace(/ /g, ' ')); }
+    } };
+  },
+  i2c_oled: function (g, w, h, card) {
+    var fo = se('foreignObject', { x: (w - 128) / 2, y: (h - 64) / 2, width: 128, height: 64 }, g), cv = document.createElement('canvas');
+    cv.width = 128; cv.height = 64; cv.style.cssText = 'width:128px;height:64px;display:block;background:#05070A;image-rendering:pixelated'; fo.appendChild(cv);
+    var src = card ? card.el.querySelector('canvas') : null, last = '';
+    return { upd: function (on) {
+      var k = on ? (S.busDevice('i2c_oled').st.rev + ':' + S.mods.i2c_oled.on) : 'off';
+      if (k === last) return; last = k;
+      var c = cv.getContext && cv.getContext('2d'); if (!c) return;
+      c.fillStyle = '#05070A'; c.fillRect(0, 0, 128, 64); if (on && src) c.drawImage(src, 0, 0);
+    } };
+  },
+  spi_595: function (g, w, h) {
+    var ls = [];
+    for (var i = 0; i < 8; i++) ls.push(se('circle', { class: 'bled', cx: 12 + i * ((w - 24) / 7), cy: h / 2, r: 6.5 }, g));
+    return { upd: function (on) { var o = on ? S.busDevice('spi_595').st.out : 0; ls.forEach(function (l, i) { cls(l, 'bled' + ((o >> (7 - i)) & 1 ? ' on' : '')); }); } };
+  }
+};
+var MIRRORED = { relay: 1, ledbar: 1, rgb: 1, seg: 1, buzzer: 1, motor: 1, servo: 1, stepper: 1 };
+
+var SHORTT = { i2c_tmp: 'TMP102', i2c_eeprom: 'EEPROM 24C02', i2c_lcd: 'LCD 16x2', i2c_oled: 'OLED 128x64', spi_eeprom: 'EEPROM 25LC256', spi_595: '74HC595 + LEDs', motor: 'DC motor', stepper: 'Stepper', ledbar: 'LED bar', btns: 'Buttons', dip: 'DIP switches', keypad: 'Keypad' };
+function partShort(res) {
+  var m = (res.msgs[0] || '');
+  if (/^VCC/.test(m)) return /GND/.test(m) ? 'VCC on GND' : /needs/.test(m) ? 'wrong voltage' : 'no power';
+  if (/^GND/.test(m)) return 'no GND';
+  if (/^COM/.test(m)) return 'no COM wire';
+  return 'check bus wires';
+}
+function buildPart(part) {
+  var d = DEFS[part.type], U = part.half === 'U', ox = G.X(part.col), oy = G.rowY(G.PINROW[part.half]);
+  var g = se('g', { class: 'bpart', transform: 'translate(' + ox + ' ' + oy + ')', 'data-role': 'part', 'data-uid': part.id }, gParts);
+  var by = U ? -(LEG.U + d.bodyH) : LEG.L, col = GRPCOL[d.grp];
+  d.pins.forEach(function (p, k) {
+    se('line', { class: 'bleg', x1: k * 20, x2: k * 20, y1: 0, y2: U ? -LEG.U : LEG.L }, g);
+    se('circle', { class: 'bpin', cx: k * 20, cy: 0, r: 4.2 }, g);
+  });
+  var body = se('g', { transform: 'translate(-10 ' + by + ')' }, g);
+  var rect = se('rect', { class: 'bpbody', x: 0, y: 0, width: d.bodyW, height: d.bodyH, rx: 6, stroke: col }, body);
+  se('rect', { class: 'bphead', x: 0, y: U ? 0 : d.bodyH - 16, width: d.bodyW, height: 16, rx: 6, fill: col }, body);
+  se('text', { class: 'bptitle', x: 6, y: U ? 12 : d.bodyH - 4 }, body, SHORTT[part.type] || d.label.replace(/ \(.*\)$/, ''));
+  d.pins.forEach(function (p, k) {
+    se('text', { class: 'bplabel ' + p.r, x: 10 + k * 20, y: U ? d.bodyH - 4 : 10, 'text-anchor': 'middle' }, body, p.n);
+  });
+  var fx = 6, fy = U ? 20 : 14, fw = d.bodyW - 12, fh = d.bodyH - 20 - 16 - (U ? 0 : 0);
+  if (!U) fh = d.bodyH - 14 - 16 - 2;
+  var fg = se('g', { transform: 'translate(' + fx + ' ' + fy + ')' }, body), card = window.PartsUI ? PartsUI.card(part.type) : null, face = null;
+  if (MIRRORED[part.type]) face = mirror(card && card.el, fg, 0, 0, fw, fh);
+  else if (FACES[part.type]) face = FACES[part.type](fg, fw, fh, card);
+  var dot = se('circle', { class: 'bpwr', cx: d.bodyW - 9, cy: U ? 8 : d.bodyH - 8, r: 3.2 }, body);
+  var badge = se('text', { class: 'bpbadge', x: d.bodyW - 16, y: U ? 12 : d.bodyH - 4, 'text-anchor': 'end' }, body, '');
+  var po = { part: part, g: g, rect: rect, face: face, dot: dot, badge: badge, upd: function () {
+    var on = S.partIsOn(part.type), res = report && report.parts[part.type];
+    if (face) face.upd(on);
+    cls(dot, 'bpwr ' + (on ? 'on' : 'off'));
+    tx(badge, on || !res ? '' : partShort(res));
+    cls(g, 'bpart' + (on ? '' : ' off') + (sel && sel.k === 'part' && sel.id === part.id ? ' sel' : ''));
+  } };
+  partObjs[part.id] = po; return po;
+}
+function drawParts() {
+  while (gParts.firstChild) gParts.removeChild(gParts.firstChild);
+  partObjs = {};
+  bench.parts.forEach(buildPart);
+  Object.keys(partObjs).forEach(function (k) { partObjs[k].upd(); });
+}
+
+/* ---------- wires ---------- */
+function wirePath(a, b) {
+  var p = G.xy(a), q = G.xy(b), ma = a.charAt(0) === 'm', mb = b.charAt(0) === 'm', c;
+  if (ma !== mb) {
+    var m = ma ? p : q, o = ma ? q : p; c = Math.max(34, Math.min(150, Math.abs(o.y - m.y) * 0.45));
+    return 'M' + m.x + ' ' + m.y + ' C' + m.x + ' ' + (m.y + c) + ' ' + o.x + ' ' + (o.y - c) + ' ' + o.x + ' ' + o.y;
+  }
+  if (ma && mb) { c = 40 + Math.abs(p.x - q.x) * 0.1; return 'M' + p.x + ' ' + p.y + ' C' + p.x + ' ' + (p.y + c) + ' ' + q.x + ' ' + (q.y + c) + ' ' + q.x + ' ' + q.y; }
+  var h = 28 + Math.min(Math.abs(p.x - q.x) * 0.22, 80), top = Math.min(p.y, q.y) - h;
+  return 'M' + p.x + ' ' + p.y + ' C' + p.x + ' ' + top + ' ' + q.x + ' ' + top + ' ' + q.x + ' ' + q.y;
+}
+function drawWires() {
+  while (gWires.firstChild) gWires.removeChild(gWires.firstChild);
+  wireObjs = {};
+  bench.wires.forEach(function (w) {
+    var g = se('g', { class: 'bwire' + (sel && sel.k === 'wire' && sel.id === w.id ? ' sel' : ''), 'data-role': 'wire', 'data-wid': w.id }, gWires), d = wirePath(w.a, w.b);
+    se('path', { class: 'w-out', d: d }, g); se('path', { class: 'w-col', d: d, stroke: w.color }, g); se('path', { class: 'w-hit', d: d }, g);
+    ['a', 'b'].forEach(function (e) {
+      var p = G.xy(w[e]);
+      se('circle', { class: 'w-end', cx: p.x, cy: p.y, r: 5.5, fill: w.color, 'data-role': 'wend', 'data-wid': w.id, 'data-end': e }, g);
+    });
+    wireObjs[w.id] = g;
+  });
+}
+
+/* ---------- view ---------- */
+function applyView() { world.setAttribute('transform', 'translate(' + view.x + ' ' + view.y + ') scale(' + view.k + ')'); }
+function fit() {
+  var r = svg.getBoundingClientRect(), W = 1340, Hh = G.BY + G.BH + 8 + 240 + 8;
+  if (!r.width) return;
+  view.k = Math.max(0.15, Math.min(1.6, Math.min((r.width - 16) / W, (r.height - 16) / Hh)));
+  view.x = (r.width - W * view.k) / 2 + 5 * view.k; view.y = 8; applyView();
+}
+function zoomAt(f, cx, cy) {
+  var k = Math.max(0.15, Math.min(3, view.k * f)); f = k / view.k;
+  view.x = cx - (cx - view.x) * f; view.y = cy - (cy - view.y) * f; view.k = k; applyView();
+}
+function worldPt(ev) { var r = svg.getBoundingClientRect(); return { x: (ev.clientX - r.left - view.x) / view.k, y: (ev.clientY - r.top - view.y) / view.k }; }
+function toast(msg, bad) {
+  var t = $('benchToast'); if (!t) return; t.textContent = msg; t.className = 'on' + (bad ? ' bad' : '');
+  clearTimeout(toastT); toastT = setTimeout(function () { t.className = ''; }, 3800);
+}
+
+/* ---------- preview while dragging ---------- */
+function clearPrev() { if (prev) { prev.remove(); prev = null; } }
+function showPrev(type, col, half, why) {
+  clearPrev();
+  var d = DEFS[type], U = half === 'U', g = prev = se('g', { class: 'bprev ' + (why ? 'bad' : 'good') }, gOver);
+  var ox = G.X(col), oy = G.rowY(G.PINROW[half]), by = U ? -(LEG.U + d.bodyH) : LEG.L;
+  var gg = se('g', { transform: 'translate(' + ox + ' ' + oy + ')' }, g);
+  se('rect', { x: -10, y: by, width: d.bodyW, height: d.bodyH, rx: 6 }, gg);
+  se('text', { x: -4, y: by + (U ? 14 : d.bodyH - 6) }, gg, d.label);
+  d.pins.forEach(function (p, k) { se('circle', { cx: k * 20, cy: 0, r: 6 }, gg); se('line', { x1: k * 20, x2: k * 20, y1: 0, y2: U ? -LEG.U : LEG.L }, gg); });
+  if (why) se('text', { class: 'prevwhy', x: ox - 10, y: oy + (U ? by - 8 : by + d.bodyH + 16) }, g, why);
+}
+function slot(type, world, grab) {
+  var half = world.y < G.BY + G.BH / 2 ? 'U' : 'L';
+  var col = Math.round((world.x - (grab || 0) - G.X(1)) / 20) + 1;
+  return { col: col, half: half };
+}
+function inBand(w) { return w.x > -40 && w.x < 1400 && w.y > G.BY - 230 && w.y < G.BY + G.BH + 230; }
+
+/* ---------- editing ---------- */
+function changed(keepSel) {
+  report = bench.derive(S);
+  if (window.PartsUI) PartsUI.refresh();
+  if (!keepSel) { /* selection stays valid unless the thing is gone */ }
+  if (sel && ((sel.k === 'part' && !bench.partById(sel.id)) || (sel.k === 'wire' && !bench.wireById(sel.id)))) sel = null;
+  drawParts(); drawWires(); drawMessages(); drawPalette(); drawSel(); Object.keys(inspInfo).forEach(updateInspector); save();
+  if (hooks.onChange) hooks.onChange(report);
+}
+function select(k, id) {
+  sel = k ? { k: k, id: id } : null;
+  Object.keys(partObjs).forEach(function (i) { partObjs[i].upd(); });
+  Object.keys(wireObjs).forEach(function (i) { wireObjs[i].classList.toggle('sel', !!(sel && sel.k === 'wire' && sel.id === +i)); });
+  drawSel();
+}
+function place(type, col, half) {
+  var p = bench.addPart(type, col, half);
+  if (!p) { toast(bench.lastError, true); return null; }
+  changed(); select('part', p.id); return p;
+}
+function drawSel() {
+  var b = $('benchSel'); if (!b) return;
+  if (!sel) { b.className = ''; b.innerHTML = ''; return; }
+  if (sel.k === 'wire') {
+    var w = bench.wireById(sel.id); if (!w) { b.className = ''; return; }
+    b.className = 'on'; b.innerHTML = '<span><b>Wire</b> ' + esc(pinName(w.a)) + ' to ' + esc(pinName(w.b)) + '</span><button class="btn small" data-act="rmwire" type="button">Remove wire</button>';
+    return;
+  }
+  var p = bench.partById(sel.id); if (!p) { b.className = ''; return; }
+  b.className = 'on';
+  b.innerHTML = '<span><b>' + esc(DEFS[p.type].label) + '</b></span><button class="btn small" data-act="inspect" type="button">Open details</button>' +
+    '<button class="btn small" data-act="autowire" type="button" title="Add the jumpers this part is missing, using the pins the examples use">Wire the missing pins</button>' +
+    '<button class="btn small" data-act="rmpart" type="button">Remove part</button>';
+}
+function autoWire(part) {
+  var n = bench.autoWire(part, MSP.BENCHPINS[part.type], true);
+  changed(); toast(n ? 'Added ' + n + ' wire' + (n === 1 ? '' : 's') + '. Change them if your program uses other pins.' : 'Nothing to add: every pin of this part already has a wire.');
+}
+function removeSelected() {
+  if (!sel) return;
+  if (sel.k === 'wire') bench.removeWire(sel.id);
+  else { var p = bench.partById(sel.id); if (p) { bench.removePart(sel.id); if (window.Win) Win.close('insp-' + p.type); } }
+  sel = null; changed();
+}
+
+/* ---------- messages ---------- */
+function drawMessages() {
+  var box = $('benchMsgs'); if (!box || !report) return;
+  var items = [], seen = {};
+  report.msgs.forEach(function (m) { items.push({ t: m, c: /^Short circuit/.test(m) ? 'bad' : 'warn' }); seen[m] = 1; });
+  if (window.PartsUI) PartsUI.compute().forEach(function (m) { if (!seen[m] && !/^Some pins are not wired/.test(m)) items.push({ t: m, c: 'info' }); });
+  bench.parts.forEach(function (p) { var r = report.parts[p.type]; if (r && r.hint) items.push({ t: DEFS[p.type].label + ': ' + r.hint, c: 'info' }); });
+  var n = items.length, sum = $('benchMsgsSum'), list = $('benchMsgsList');
+  var bad = items.some(function (i) { return i.c === 'bad'; });
+  box.className = n ? (bad ? 'bad' : 'warn') : (bench.parts.length ? 'ok' : 'empty');
+  sum.textContent = n ? 'Bench check: ' + n + ' issue' + (n === 1 ? '' : 's') : bench.parts.length ? 'Bench check: all wired parts are powered' : 'Bench check: the bench is empty';
+  list.innerHTML = items.map(function (i) { return '<li class="' + i.c + '">' + esc(i.t) + '</li>'; }).join('');
+}
+function fault() { return report && report.shorts.length ? 'short circuit' : ''; }
+
+/* ---------- inspector windows ---------- */
+function updateInspector(type) {
+  var box = inspInfo[type]; if (!box) return;
+  var part = bench.partOf(type), res = report && report.parts[type];
+  if (!part) { box.innerHTML = '<p class="warnline on">This part is not on the bench. Drag it from the parts list onto the breadboard.</p>'; return; }
+  var h = '<div class="wstat ' + (res && res.on ? 'ok' : 'bad') + '">' + (res && res.on ? 'Powered and wired' : 'Not working yet') + '</div>';
+  if (res && res.msgs.length) h += '<ul class="wmsg">' + res.msgs.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') + '</ul>';
+  if (res && res.hint) h += '<p class="note">' + esc(res.hint) + '</p>';
+  h += '<table class="kv wtab"><tbody>' + res.pins.map(function (p) {
+    return '<tr class="' + (p.to ? '' : 'miss') + '"><th>' + esc(p.n) + '</th><td>' + (p.to ? esc(p.to) : '<span class="dim">not connected</span>') + '</td></tr>';
+  }).join('') + '</tbody></table>';
+  if (DEFS[type].note) h += '<p class="note">' + esc(DEFS[type].note) + '</p>';
+  h += '<div class="parthead"><button class="btn small" data-act="autowire" type="button">Wire the missing pins</button><button class="btn small" data-act="rmpart" type="button">Remove from bench</button></div>';
+  box.innerHTML = h;
+}
+function inspect(type) {
+  var id = 'insp-' + type;
+  if (!Win.get(id)) {
+    var cd = PartsUI.card(type), box = he('div', 'insp'), info = he('div', 'benchwires');
+    box.appendChild(info); box.appendChild(cd.el); inspInfo[type] = info;
+    var dw = $('desk').clientWidth, n = Object.keys(inspInfo).length;
+    info.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return; var p = bench.partOf(type); if (!p) return;
+      if (b.getAttribute('data-act') === 'autowire') autoWire(p); else if (b.getAttribute('data-act') === 'rmpart') { bench.removePart(p.id); if (sel && sel.id === p.id) sel = null; changed(); Win.close(id); }
+    });
+    Win.create(id, DEFS[type].label, box, { x: Math.max(8, dw - 440 - n * 24), y: 20 + n * 24, w: 420, h: 540 });
+  }
+  updateInspector(type); Win.open(id);
+}
+
+/* ---------- palette ---------- */
+function buildPalette(box) {
+  var grp = '';
+  ORDER.forEach(function (t) {
+    var d = DEFS[t];
+    if (d.grp !== grp) { grp = d.grp; var hd = he('div', 'pal-grp'); hd.textContent = grp; hd.style.setProperty('--gc', GRPCOL[grp]); box.appendChild(hd); }
+    var b = he('button', 'pal-item'); b.type = 'button'; b.setAttribute('data-type', t);
+    b.innerHTML = '<span class="pn">' + esc(d.label) + '</span><span class="pm">' + d.pins.length + ' pins' + (d.vcc ? ', ' + d.vcc.map(function (v) { return v === '3V3' ? '3.3 V' : '5 V'; }).join('/') : '') + '</span><span class="pt"></span>';
+    b.title = d.pins.map(function (p) { return p.n; }).join('  ');
+    b.style.setProperty('--gc', GRPCOL[d.grp]);
+    palItems[t] = b; box.appendChild(b); palDrag(b, t);
+  });
+}
+function drawPalette() {
+  ORDER.forEach(function (t) {
+    var b = palItems[t], on = !!bench.partOf(t);
+    b.classList.toggle('used', on); b.classList.toggle('armed', armed === t);
+    b.querySelector('.pt').textContent = on ? 'on bench' : armed === t ? 'click the board' : '';
+  });
+}
+var ghost = null;
+function palDrag(btn, type) {
+  var st = null;
+  btn.addEventListener('pointerdown', function (e) {
+    if (e.button && e.pointerType === 'mouse') return;
+    var ex = bench.partOf(type);
+    if (ex) { select('part', ex.id); toast('The ' + DEFS[type].label + ' is already on the bench. Drag it to move it. Only one of each part is supported.'); return; }
+    st = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId };
+    try { btn.setPointerCapture(e.pointerId); } catch (x) {}
+    e.preventDefault();
+  });
+  btn.addEventListener('pointermove', function (e) {
+    if (!st) return;
+    if (!st.moved && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 6) {
+      st.moved = true; arm(null); document.body.classList.remove('paldrawer');
+      ghost = he('div', 'palghost'); ghost.textContent = DEFS[type].label; document.body.appendChild(ghost);
+    }
+    if (!st.moved) return;
+    ghost.style.left = e.clientX + 12 + 'px'; ghost.style.top = e.clientY + 12 + 'px';
+    var r = svg.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+      var w = worldPt(e); if (!inBand(w)) { clearPrev(); return; }
+      var s = slot(type, w, 0); showPrev(type, s.col, s.half, bench.whyNot(type, s.col, s.half));
+    } else clearPrev();
+  });
+  function end(e) {
+    if (!st) return; var s0 = st; st = null;
+    if (ghost) { ghost.remove(); ghost = null; }
+    clearPrev();
+    if (!s0.moved) { arm(armed === type ? null : type); return; }
+    var r = svg.getBoundingClientRect();
+    if (e.type === 'pointerup' && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+      var w = worldPt(e); if (inBand(w)) { var s = slot(type, w, 0); place(type, s.col, s.half); }
+    }
+  }
+  btn.addEventListener('pointerup', end); btn.addEventListener('pointercancel', end);
+}
+function arm(type) {
+  armed = type; svg.classList.toggle('armed', !!type); drawPalette(); clearPrev();
+  if (type) { document.body.classList.remove('paldrawer'); toast('Click a spot on the breadboard to place the ' + DEFS[type].label + '. Press Esc to cancel.'); }
+}
+
+/* ---------- pointer handling on the canvas ---------- */
+function roleOf(t) { while (t && t !== svg) { if (t.getAttribute && t.getAttribute('data-role')) return t; t = t.parentNode; } return null; }
+function startWire(ref, ev) { drag = { k: 'wire', from: ref, sx: ev.clientX, sy: ev.clientY, moved: false }; wprev = se('path', { class: 'wprev' }, gOver); }
+function endDrag() {
+  if (wprev) { wprev.remove(); wprev = null; } if (ring) ring.setAttribute('opacity', 0); clearPrev();
+  Object.keys(partObjs).forEach(function (k) { partObjs[k].g.classList.remove('lift'); });
+  drag = null;
+}
+function setPending(ref) {
+  pending = ref;
+  if (pendMark) { pendMark.remove(); pendMark = null; }
+  if (ref) { var p = G.xy(ref); pendMark = se('circle', { class: 'pend', cx: p.x, cy: p.y, r: 9 }, gOver); toast('Wire started at ' + pinName(ref) + '. Click where it should end, or press Esc.'); }
+}
+function onDown(ev) {
+  pointers[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+  if (Object.keys(pointers).length === 2) { endDrag(); var ids = Object.keys(pointers), a = pointers[ids[0]], b = pointers[ids[1]]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; return; }
+  if (ev.pointerType === 'mouse' && ev.button === 2) return;
+  svg.focus({ preventScroll: true });
+  var w = worldPt(ev), role = roleOf(ev.target), r = role && role.getAttribute('data-role');
+  if (armed) {
+    var s = slot(armed, w, 0), type = armed;
+    if (!bench.whyNot(type, s.col, s.half)) { armed = null; svg.classList.remove('armed'); place(type, s.col, s.half); } else toast(bench.whyNot(type, s.col, s.half), true);
+    return;
+  }
+  if (r === 'wend') { var wid = +role.getAttribute('data-wid'); select('wire', wid); drag = { k: 'wend', wid: wid, end: role.getAttribute('data-end'), moved: false, sx: ev.clientX, sy: ev.clientY }; wprev = se('path', { class: 'wprev' }, gOver); return; }
+  if (r === 'wire') { var hr = G.refAt(w.x, w.y, 6); if (hr && !bench.occupied(hr)) { startWire(hr, ev); return; } select('wire', +role.getAttribute('data-wid')); return; }
+  if (r === 'part') {
+    var part = bench.partById(+role.getAttribute('data-uid')); select('part', part.id);
+    drag = { k: 'part', id: part.id, grab: w.x - G.X(part.col), moved: false, sx: ev.clientX, sy: ev.clientY }; return;
+  }
+  var ref = G.refAt(w.x, w.y, 9);
+  if (ref && !bench.occupied(ref)) { startWire(ref, ev); return; }
+  if (pending) setPending(null);
+  if (sel) select(null);
+  drag = { k: 'pan', sx: ev.clientX, sy: ev.clientY, vx: view.x, vy: view.y };
+}
+function onMove(ev) {
+  if (pointers[ev.pointerId]) { pointers[ev.pointerId].x = ev.clientX; pointers[ev.pointerId].y = ev.clientY; }
+  if (pinch) {
+    var ids = Object.keys(pointers); if (ids.length < 2) { pinch = null; return; }
+    var a = pointers[ids[0]], b = pointers[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, r = svg.getBoundingClientRect();
+    view.x += mx - pinch.mx; view.y += my - pinch.my; zoomAt(d / pinch.d, mx - r.left, my - r.top); pinch.d = d; pinch.mx = mx; pinch.my = my; return;
+  }
+  var w = worldPt(ev);
+  if (!drag) {
+    if (armed) { if (inBand(w)) { var s = slot(armed, w, 0); showPrev(armed, s.col, s.half, bench.whyNot(armed, s.col, s.half)); } else clearPrev(); return; }
+    var ref = G.refAt(w.x, w.y, 9), rl = roleOf(ev.target), rr = rl && rl.getAttribute('data-role');
+    var ok = ref && !bench.occupied(ref) && (!rr || rr === 'mcu' || rr === 'wire');
+    if (ok) { var p = G.xy(ref); ring.setAttribute('cx', p.x); ring.setAttribute('cy', p.y); ring.setAttribute('opacity', 1); } else ring.setAttribute('opacity', 0);
+    return;
+  }
+  if (drag.k === 'pan') { if (!drag.cap) { drag.cap = true; try { svg.setPointerCapture(ev.pointerId); } catch (x) {} } view.x = drag.vx + ev.clientX - drag.sx; view.y = drag.vy + ev.clientY - drag.sy; applyView(); return; }
+  if (!drag.moved && Math.hypot(ev.clientX - drag.sx, ev.clientY - drag.sy) > 5) { drag.moved = true; try { svg.setPointerCapture(ev.pointerId); } catch (x) {} }
+  if (drag.k === 'part') {
+    if (!drag.moved) return;
+    var part = bench.partById(drag.id); if (!part) return;
+    if (partObjs[part.id]) partObjs[part.id].g.classList.add('lift');
+    if (!inBand(w)) { clearPrev(); drag.slot = null; return; }
+    var sl = slot(part.type, w, drag.grab), why = bench.whyNot(part.type, sl.col, sl.half, part);
+    drag.slot = why ? null : sl; showPrev(part.type, sl.col, sl.half, why); return;
+  }
+  // wire or wire end
+  var fromRef = drag.k === 'wire' ? drag.from : (drag.end === 'a' ? bench.wireById(drag.wid).b : bench.wireById(drag.wid).a);
+  var tgt = G.refAt(w.x, w.y, 11), good = tgt && tgt !== fromRef && !bench.occupied(tgt, drag.k === 'wend' ? bench.wireById(drag.wid) : null);
+  var end = good ? G.xy(tgt) : w, p0 = G.xy(fromRef);
+  var fake = good ? tgt : null;
+  wprev.setAttribute('d', good ? wirePath(fromRef, tgt) : 'M' + p0.x + ' ' + p0.y + ' L' + w.x + ' ' + w.y);
+  wprev.setAttribute('class', 'wprev' + (good ? ' good' : ''));
+  if (good) { ring.setAttribute('cx', end.x); ring.setAttribute('cy', end.y); ring.setAttribute('opacity', 1); } else ring.setAttribute('opacity', 0);
+}
+function onUp(ev) {
+  delete pointers[ev.pointerId]; if (pinch) { if (Object.keys(pointers).length < 2) pinch = null; return; }
+  if (!drag) return;
+  var d = drag, w = worldPt(ev); endDrag();
+  if (d.k === 'part') {
+    if (!d.moved || !d.slot) { if (d.moved) toast(bench.lastError || 'That spot does not work.', true); return; }
+    var p = bench.partById(d.id); if (bench.movePart(d.id, d.slot.col, d.slot.half)) changed(); else toast(bench.lastError, true); return;
+  }
+  if (d.k === 'wire') {
+    var tgt = G.refAt(w.x, w.y, 11);
+    if (d.moved) {
+      if (tgt && tgt !== d.from) { var wr = bench.addWire(d.from, tgt); if (wr) { changed(); select('wire', wr.id); } else toast(bench.lastError, true); }
+      return;
+    }
+    // a click: start or finish a wire in two clicks
+    if (pending) { var a = pending; setPending(null); if (a !== d.from) { var w2 = bench.addWire(a, d.from); if (w2) { changed(); select('wire', w2.id); } else toast(bench.lastError, true); } }
+    else setPending(d.from);
+    return;
+  }
+  if (d.k === 'wend') {
+    if (!d.moved) return;
+    var tg = G.refAt(w.x, w.y, 11), wire = bench.wireById(d.wid);
+    if (tg && wire && bench.moveWireEnd(d.wid, d.end, tg)) changed(); else if (wire) { toast(bench.lastError || 'That end cannot go there.', true); drawWires(); }
+  }
+}
+function bindCanvas() {
+  svg.addEventListener('pointerdown', onDown);
+  svg.addEventListener('pointermove', onMove);
+  svg.addEventListener('pointerup', onUp);
+  svg.addEventListener('pointercancel', function (e) { delete pointers[e.pointerId]; pinch = null; endDrag(); });
+  svg.addEventListener('pointerleave', function () { if (ring && !drag) ring.setAttribute('opacity', 0); });
+  svg.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  svg.addEventListener('wheel', function (e) {
+    e.preventDefault(); var r = svg.getBoundingClientRect();
+    zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
+  svg.addEventListener('dblclick', function (e) {
+    var role = roleOf(e.target), r = role && role.getAttribute('data-role');
+    if (r === 'part') { var p = bench.partById(+role.getAttribute('data-uid')); if (p) inspect(p.type); }
+    else if (r === 'mcu') Win.open('program');
+  });
+  svg.addEventListener('click', function (e) { var role = roleOf(e.target); if (role && role.getAttribute('data-role') === 'open') Win.open('program'); });
+  svg.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.getAttribute && e.target.getAttribute('data-role') === 'open') Win.open('program');
+  });
+  document.addEventListener('keydown', function (e) {
+    var t = e.target, typing = t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName);
+    if (typing) return;
+    if (e.key === 'Escape') { if (armed) arm(null); if (pending) setPending(null); if (drag) endDrag(); return; }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && sel && !(t && t.closest && t.closest('.win'))) { e.preventDefault(); removeSelected(); }
+  });
+  $('benchSel').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || !sel) return; var act = b.getAttribute('data-act');
+    if (act === 'rmwire' || act === 'rmpart') removeSelected();
+    else if (act === 'inspect') { var p = bench.partById(sel.id); if (p) inspect(p.type); }
+    else if (act === 'autowire') { var q = bench.partById(sel.id); if (q) autoWire(q); }
+  });
+  $('zoomIn').addEventListener('click', function () { var r = svg.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); });
+  $('zoomOut').addEventListener('click', function () { var r = svg.getBoundingClientRect(); zoomAt(0.8, r.width / 2, r.height / 2); });
+  $('zoomFit').addEventListener('click', fit);
+  var clr = $('benchClear'), armedClear = 0;
+  clr.addEventListener('click', function () {
+    if (!armedClear) { armedClear = setTimeout(function () { armedClear = 0; clr.textContent = 'Clear bench'; }, 3000); clr.textContent = 'Click again to clear'; return; }
+    clearTimeout(armedClear); armedClear = 0; clr.textContent = 'Clear bench';
+    Object.keys(inspInfo).forEach(function (t) { Win.close('insp-' + t); });
+    bench.clear(); sel = null; changed();
+  });
+  window.addEventListener('resize', function () { if (svg.getBoundingClientRect().width) applyView(); });
+}
+
+/* ---------- frame ---------- */
+function frame(ts) {
+  if (!bench) return;
+  Object.keys(partObjs).forEach(function (k) { partObjs[k].upd(); });
+  mcuLeds.forEach(function (l) {
+    var b = S.loaded && S.onboard.leds ? S.brightness(l.L, l.b) : 0;
+    at(l.core, 'opacity', b.toFixed(2)); at(l.halo, 'opacity', (b * 0.7).toFixed(2));
+  });
+  mcuSw.forEach(function (s) { cls(s.cap, 'cap' + (S.inputs[s.L + s.b] === 0 ? ' down' : '')); });
+  if (txOn && window.UIState) at(txOn, 'opacity', UIState.txFlash(ts) ? 1 : 0);
+  if (ts - lastPin > 120) { lastPin = ts; updatePins(); }
+}
+
+/* ---------- save and load ---------- */
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(function () {
+    try { store.set('e401y.bench', JSON.stringify({ v: 1, bench: bench.export(), settings: S.partsExport() })); } catch (e) {}
+  }, 300);
+}
+function load() {
+  var o = null;
+  try { o = JSON.parse(store.get('e401y.bench') || 'null'); } catch (e) { o = null; }
+  if (o && o.bench) {
+    if (o.settings) S.partsImport(o.settings);
+    bench.import(o.bench);
+    return true;
+  }
+  // an older saved wiring (before the bench) is carried over as parts plugged into the board with their old pins wired
+  var old = null;
+  try { old = JSON.parse(store.get('e401y.wiring2') || 'null'); } catch (e) { old = null; }
+  if (old && typeof old === 'object') {
+    S.partsImport(old); var any = false;
+    ORDER.forEach(function (t) { if (S.partIsOn(t)) { bench.autoPlace(t, MSP.pinMapOf(S, t)); any = true; } });
+    bench.onboard.leds = S.onboard.leds; bench.onboard.sw = S.onboard.sw;
+    bench.parts.forEach(function (p) { p.auto = false; }); bench.wires.forEach(function (w) { w.auto = false; });
+    return any;
+  }
+  return false;
+}
+
+/* ---------- examples ---------- */
+// Put the parts an example needs on the bench, wired the way its code expects. Parts and wires made for an earlier example go away.
+function useExample(needs) {
+  if (!bench) return;
+  needs = needs || [];
+  var want = needs.filter(function (n) { return DEFS[n]; });
+  bench.parts.filter(function (p) { return p.auto && want.indexOf(p.type) < 0; }).forEach(function (p) { Win.close('insp-' + p.type); });
+  bench.dropAuto();
+  // wires made for parts that are gone have been dropped above; keep the ones the student made
+  var made = [];
+  want.forEach(function (t) { if (!bench.partOf(t)) { if (bench.autoPlace(t)) made.push(t); else toast('There is no room on the bench for the ' + DEFS[t].label + '.', true); } else { var p = bench.partOf(t); bench.autoWire(p, MSP.BENCHPINS[t], true); } });
+  if (needs.indexOf('leds') >= 0) bench.onboard.leds = true;
+  if (needs.indexOf('sw') >= 0) bench.onboard.sw = true;
+  S.partOn('leds', bench.onboard.leds); S.partOn('sw', bench.onboard.sw);
+  changed();
+  return made;
+}
+
+/* ---------- init ---------- */
+function init(sim, st, opts) {
+  S = sim; store = st; hooks = opts || {};
+  bench = new MSP.Bench();
+  svg = $('bench'); world = se('g', { id: 'world' }, svg);
+  var defs = se('defs', null, svg); var f = se('filter', { id: 'bGlow', x: '-150%', y: '-150%', width: '400%', height: '400%' }, defs); se('feGaussianBlur', { stdDeviation: 5 }, f);
+  svg.insertBefore(defs, world);
+  gBoard = se('g', null, world); gParts = se('g', null, world); gMcu = se('g', null, world); gWires = se('g', null, world); gOver = se('g', null, world);
+  buildBoard(); buildMcu();
+  ring = se('circle', { class: 'hring', r: 8, opacity: 0, cx: 0, cy: 0 }, gOver);
+  buildPalette($('palList'));
+  bindCanvas();
+  var had = load();
+  bench.onboard.leds = S.onboard.leds = bench.onboard.leds; bench.onboard.sw = S.onboard.sw = bench.onboard.sw;
+  S.partOn('leds', bench.onboard.leds); S.partOn('sw', bench.onboard.sw);
+  report = bench.reapply(S);
+  if (window.PartsUI) PartsUI.refresh();
+  drawParts(); drawWires(); drawMessages(); drawPalette(); drawSel();
+  requestAnimationFrame(function () { fit(); });
+  if (window.ResizeObserver) new ResizeObserver(function () { if (!view.manual) fit(); }).observe($('desk'));
+  return had;
+}
+// Called when a settings control on a part card changed something the bench must save.
+function settingsChanged() { if (!bench) return; bench.onboard.leds = S.onboard.leds; bench.onboard.sw = S.onboard.sw; drawMessages(); save(); }
+
+function screen(ref) { var p = G.xy(ref), r = svg.getBoundingClientRect(); return { x: r.left + view.x + p.x * view.k, y: r.top + view.y + p.y * view.k }; }
+return { refresh: function () { changed(); }, screen: screen, sim: function () { return S; }, init: init, frame: frame, useExample: useExample, fault: fault, inspect: inspect, settingsChanged: settingsChanged, fit: fit,
+  bench: function () { return bench; }, report: function () { return report; }, toast: toast };
 })();
 /* UI: debugger (breakpoints, stepping, call stack, variables, watch) and the peripheral register viewer. Depends on MSP. */
 (function () {
@@ -12021,7 +13407,7 @@ var api = {
       lastRev = S.dbg.rev; sel = 0; stepBtns(true);
       drawStack(); drawVars(); drawWatch(); drawWhere(); ctx.updateGutter(); ctx.scrollToLine(S.dbg.line); drawRegs(true);
     } else if (!S.paused && lastRev !== -1) { lastRev = -1; stepBtns(false); drawStack(); drawVars(); drawWatch(); drawWhere(); ctx.updateGutter(); }
-    if (ts - lastRegDraw > 250) { lastRegDraw = ts; drawRegs(false); if (!S.paused) drawWatch(); }
+    if (ts - lastRegDraw > 250) { lastRegDraw = ts; if (window.Win && Win.isOpen('program')) { drawRegs(false); if (!S.paused) drawWatch(); } }
   }
 };
 window.DbgUI = api;
@@ -12123,7 +13509,7 @@ function noteFor(id) {
 exSel.addEventListener('change', function () {
   drafts[cur] = code.value;
   cur = exSel.value; code.value = srcFor(cur); if (window.DbgUI) DbgUI.setExample(cur);
-  var ex = exOf(cur); if (ex && ex.needs && window.PartsUI) PartsUI.need(ex.needs);
+  var ex = exOf(cur); if (window.BenchUI) BenchUI.useExample(ex && ex.needs ? ex.needs : []);
   $('exNote').textContent = noteFor(cur);
   store.set('e401y.drafts', JSON.stringify(drafts)); store.set('e401y.cur', cur);
   clearErr(); runBuild();
@@ -12226,8 +13612,9 @@ $('termForm').addEventListener('submit', function (e) {
 
 /* ---------- build and run ---------- */
 function setStatus() {
-  var s = $('status');
-  if (!S.loaded) { s.className = 'chip idle'; s.textContent = 'idle'; }
+  var s = $('status'), flt = window.BenchUI ? BenchUI.fault() : '';
+  if (flt) { s.className = 'chip halt'; s.textContent = 'power fault: ' + flt; }
+  else if (!S.loaded) { s.className = 'chip idle'; s.textContent = 'idle'; }
   else if (S.halted) { s.className = 'chip halt'; s.textContent = 'halted'; }
   else if (S.paused) { s.className = 'chip stop'; s.textContent = 'stopped, line ' + S.dbg.line; }
   else if (!running) { s.className = 'chip idle'; s.textContent = 'paused'; }
@@ -12341,10 +13728,19 @@ function drawScope() {
     while (lo < hi) { var mid = (lo + hi) >> 1; if (a[mid][0] < tL) lo = mid + 1; else hi = mid; }
     var lvl = lo > 0 ? a[lo - 1][1] : 0, y = lvl ? yH : yL;
     g.strokeStyle = col('--scr-trace'); g.beginPath(); g.moveTo(x0, y);
+    // At most one step or one full-height bar per pixel column, so a fast signal costs the same to draw as a slow one.
+    var cx = null, cn = 0, cy0 = y;
+    var flush = function () {
+      if (cx === null) return;
+      g.lineTo(cx, cy0);
+      if (cn === 1) g.lineTo(cx, y); else { g.lineTo(cx, yH); g.lineTo(cx, yL); g.lineTo(cx, y); }
+    };
     for (var j = lo; j < a.length && a[j][0] <= tR; j++) {
-      var x = xOf(a[j][0]), ny = a[j][1] ? yH : yL;
-      g.lineTo(x, y); g.lineTo(x, ny); y = ny;
+      var ix = Math.floor(xOf(a[j][0])) + 0.5;
+      if (ix !== cx) { flush(); cx = ix; cn = 0; cy0 = y; }
+      cn++; y = a[j][1] ? yH : yL;
     }
+    flush();
     g.lineTo(x1, y); g.stroke();
   });
 }
@@ -12375,17 +13771,37 @@ function updateStatus() {
   $('baud').textContent = S.u.baud;
 }
 
+/* ---------- windows ---------- */
+function makeWindows() {
+  var desk = $('desk'), dw = desk.clientWidth || 1000, dh = desk.clientHeight || 700;
+  Win.init(desk, store);
+  Win.create('program', 'Program: main.c, debugger and registers', $('pgmBody'), { x: Math.max(8, dw - 820), y: 8, w: Math.min(800, dw - 16), h: Math.min(dh - 16, 740) });
+  Win.create('board', 'LaunchPad: switches, analog inputs, pins', $('boardBody'), { x: 12, y: 12, w: 440, h: Math.min(dh - 24, 620) });
+  Win.create('term', 'UART0 terminal', $('termBody'), { x: Math.max(8, dw - 520), y: dh - 420, w: 500, h: 400 });
+  Win.create('scope', 'Logic analyzer', $('scopeBody'), { x: 40, y: dh - 340, w: Math.min(660, dw - 60), h: 320 });
+  Win.create('bus', 'Bus decoder', $('busBody'), { x: 60, y: 60, w: 540, h: 400 });
+  Win.create('stat', 'Status', $('statBody'), { x: Math.max(8, dw - 420), y: 80, w: 400, h: 440 });
+  Win.create('help', 'What this simulator models', $('helpBody'), { x: 80, y: 40, w: 580, h: 540 });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-win]'), function (b) { Win.bind(b, b.getAttribute('data-win')); });
+  var pt = $('palToggle'); if (pt) pt.addEventListener('click', function () { document.body.classList.toggle('paldrawer'); });
+  document.addEventListener('winshow', function () { lastScope = 0; lastStat = 0; updateGutter(); });
+}
+window.UIState = { txFlash: function (ts) { return ts < txFlashUntil; } };
+
 /* ---------- main loop ---------- */
-var lastTs = 0, lastStat = 0, lastScope = 0;
+var lastTs = 0, lastStat = 0, lastScope = 0, scopeGap = 40, lastFault = '';
 function frame(ts) {
   var dt = Math.min(0.1, Math.max(0, (ts - lastTs) / 1000)); lastTs = ts;
-  if (running && S.loaded && !S.halted && !S.paused) {
+  var flt = window.BenchUI ? BenchUI.fault() : '';
+  if (flt !== lastFault) { lastFault = flt; setStatus(); }
+  if (running && S.loaded && !S.halted && !S.paused && !flt) {
     S.run(dt * (+$('speed').value || 1), 10);
     if (S.halted) { running = false; setStatus(); }
   }
   flushTerm();
   if (window.DbgUI) DbgUI.frame(ts);
-  if (window.PartsUI) PartsUI.frame(running && S.loaded && !S.halted);
+  if (window.PartsUI) PartsUI.frame(running && S.loaded && !S.halted && !flt);
+  if (window.BenchUI) BenchUI.frame(ts);
   ledEls.forEach(function (l) {
     var b = S.loaded && S.onboard.leds ? S.brightness(l.d.L, l.d.b) : 0;
     l.core.setAttribute('opacity', b.toFixed(3)); l.halo.setAttribute('opacity', (b * 0.7).toFixed(3));
@@ -12394,8 +13810,12 @@ function frame(ts) {
   capEls[0].setAttribute('class', 'cap' + (S.inputs.J0 === 0 ? ' down' : ''));
   capEls[1].setAttribute('class', 'cap' + (S.inputs.J1 === 0 ? ' down' : ''));
   updatePins();
-  if (ts - lastScope > 40) { lastScope = ts; drawScope(); }
-  if (ts - lastStat > 250) { lastStat = ts; updateStatus(); setStatus(); }
+  // Windows that are closed are not redrawn. The analyzer backs off when a redraw is slow (long traces, slow computers).
+  if (ts - lastScope > scopeGap) {
+    lastScope = ts;
+    if (Win.isOpen('scope')) { var t0 = performance.now(); drawScope(); scopeGap = Math.min(500, Math.max(40, (performance.now() - t0) * 5)); }
+  }
+  if (ts - lastStat > 250) { lastStat = ts; if (Win.isOpen('stat')) updateStatus(); setStatus(); }
   requestAnimationFrame(frame);
 }
 
@@ -12403,7 +13823,10 @@ function init() {
   S = new MSP.Sim({ onTx: onTx, onLog: onLog });
   Object.keys(MSP.buildApi(new MSP.Sim())).forEach(function (n) { KNOWN[n] = 1; });
   Object.keys(MSP.REGNAMES).forEach(function (n) { KNOWN[n] = 2; });
-  if (window.PartsUI) PartsUI.init(S, store);
+  makeWindows();
+  if (window.PartsUI) PartsUI.init(S, store, { bench: true, change: function () { if (window.BenchUI) BenchUI.settingsChanged(); } });
+  if (window.PartsUI) PartsUI.onboardChecks($('obChecks'));
+  if (window.BenchUI) BenchUI.init(S, store, { onChange: function () { setStatus(); } });
   buildAnalog();
   bindHold($('sw1'), 'J', 0); bindHold($('sw2'), 'J', 1);
   var saved = store.get('e401y.cur');
